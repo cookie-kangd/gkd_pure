@@ -104,26 +104,31 @@ fun HomePage() {
             },
             bottomBar = {},
         ) { contentPadding ->
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // 把整个内容层注册为模糊源, 浮岛才能对其背后的滚动内容做实时模糊
-                    .hazeSource(hazeState)
-            ) {
-                // 只在原 padding 的 bottom 上多加一段, 让列表末项能完整滚出浮岛区域。
-                // 这里手写实现而不是用 PaddingValues(start/top/end/bottom) 重建,
-                // 是因为只转发 left/right/top 不涉及 RTL 换算, 不会把左右搞反。
-                page.content(object : PaddingValues {
-                    override fun calculateTopPadding() = contentPadding.calculateTopPadding()
-                    override fun calculateBottomPadding() =
-                        contentPadding.calculateBottomPadding() + DockContentClearance
+            Box(modifier = Modifier.fillMaxSize()) {
+                // ⚠️ 模糊源只能包住「内容层」, 浮岛必须是它的兄弟节点, 不能是后代。
+                // haze 的 SourceNode 一进入 draw() 就把 area.contentDrawing 置为 true,
+                // 而 EffectNode 绘制时 require(!area.contentDrawing) —— 浮岛若是源的后代,
+                // 抽帧读取源内容时正好落在绘制窗口内, 会直接抛异常(应用崩溃)。
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .hazeSource(hazeState)
+                ) {
+                    // 只在原 padding 的 bottom 上多加一段, 让列表末项能完整滚出浮岛区域。
+                    // 这里手写实现而不是用 PaddingValues(start/top/end/bottom) 重建,
+                    // 是因为只转发 left/right/top 不涉及 RTL 换算, 不会把左右搞反。
+                    page.content(object : PaddingValues {
+                        override fun calculateTopPadding() = contentPadding.calculateTopPadding()
+                        override fun calculateBottomPadding() =
+                            contentPadding.calculateBottomPadding() + DockContentClearance
 
-                    override fun calculateLeftPadding(layoutDirection: LayoutDirection) =
-                        contentPadding.calculateLeftPadding(layoutDirection)
+                        override fun calculateLeftPadding(layoutDirection: LayoutDirection) =
+                            contentPadding.calculateLeftPadding(layoutDirection)
 
-                    override fun calculateRightPadding(layoutDirection: LayoutDirection) =
-                        contentPadding.calculateRightPadding(layoutDirection)
-                })
+                        override fun calculateRightPadding(layoutDirection: LayoutDirection) =
+                            contentPadding.calculateRightPadding(layoutDirection)
+                    })
+                }
                 GlassBottomBar(
                     hazeState = hazeState,
                     selectedTab = selectedTab,
