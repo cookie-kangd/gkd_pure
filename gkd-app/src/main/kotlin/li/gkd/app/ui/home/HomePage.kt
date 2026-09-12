@@ -1,18 +1,23 @@
 package li.gkd.app.ui.home
 
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.serialization.Serializable
 import li.gkd.app.ui.component.PerfIcon
 import li.gkd.app.ui.share.LocalMainViewModel
@@ -78,6 +83,7 @@ fun HomePage() {
     val selectedTab = BottomNavItem.allSubObjects.find { it.key == tab }
         ?: BottomNavItem.Dashboard
     val saveableStateHolder = rememberSaveableStateHolder()
+    val hazeState = rememberHazeState()
 
     saveableStateHolder.SaveableStateProvider(selectedTab.key) {
         val page = when (selectedTab) {
@@ -89,28 +95,38 @@ fun HomePage() {
         Scaffold(
             modifier = page.modifier,
             topBar = page.topBar,
-            floatingActionButton = page.floatingActionButton,
-            bottomBar = {
-                NavigationBar {
-                    BottomNavItem.allSubObjects.forEach { navItem ->
-                        NavigationBarItem(
-                            selected = navItem == selectedTab,
-                            modifier = Modifier,
-                            onClick = { mainVm.handleClickTab(navItem) },
-                            icon = {
-                                PerfIcon(
-                                    imageVector = navItem.icon,
-                                    contentDescription = null,
-                                )
-                            },
-                            label = {
-                                Text(text = navItem.label)
-                            },
-                        )
-                    }
+            // 浮岛底栏是 overlay, 不占 Scaffold 的 bottomBar 槽位, 否则内容被顶起、
+            // 浮岛背后就没有可模糊的内容了。FAB 需要自己上移让开浮岛。
+            floatingActionButton = {
+                Box(modifier = Modifier.padding(bottom = DockContentClearance)) {
+                    page.floatingActionButton()
                 }
             },
-            content = page.content,
-        )
+            bottomBar = {},
+        ) { contentPadding ->
+            val layoutDirection = LocalLayoutDirection.current
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // 把整个内容层注册为模糊源, 浮岛才能对其背后的滚动内容做实时模糊
+                    .hazeSource(hazeState)
+            ) {
+                page.content(
+                    PaddingValues(
+                        start = contentPadding.calculateStartPadding(layoutDirection),
+                        top = contentPadding.calculateTopPadding(),
+                        end = contentPadding.calculateEndPadding(layoutDirection),
+                        // 列表底部多留一段, 保证最后一项能完整滚出浮岛区域
+                        bottom = contentPadding.calculateBottomPadding() + DockContentClearance,
+                    )
+                )
+                GlassBottomBar(
+                    hazeState = hazeState,
+                    selectedTab = selectedTab,
+                    onTabClick = mainVm::handleClickTab,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                )
+            }
+        }
     }
 }

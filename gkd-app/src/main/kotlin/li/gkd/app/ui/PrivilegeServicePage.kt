@@ -98,7 +98,7 @@ private fun PrivilegeServiceInfoDialog(onDismissRequest: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text(
-                    text = "此页面用于启动和管理特权服务。连接后，可为 GKD 提供自动化、必要权限授予等需要系统级能力的功能；断开后，依赖特权服务的功能将不可用。",
+                    text = "此页面用于启动和管理特权服务。连接后，可为 gkd_pure 提供自动化、必要权限授予等需要系统级能力的功能；断开后，依赖特权服务的功能将不可用。",
                 )
                 Text(
                     text = buildAnnotatedString {

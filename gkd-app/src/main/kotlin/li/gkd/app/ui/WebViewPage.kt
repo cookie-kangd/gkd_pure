@@ -91,7 +91,7 @@ fun WebViewPage(route: WebViewRoute) {
                         onClick = throttle(mainVm.scope.launchUiAction {
                             mainVm.dialogRequests.showMessage(
                                 title = "兼容性提示",
-                                text = "检测到您的系统内置浏览器版本($chromeVersion)过低, 可能无法正常浏览网页文档\n\n建议自行升级版本后重启 GKD 再查看文档, 或点击右上角后在外部浏览器打开查阅\n\n若能正常浏览文档请忽略此项提示",
+                                text = "检测到您的系统内置浏览器版本($chromeVersion)过低, 可能无法正常浏览网页文档\n\n建议自行升级版本后重启 gkd_pure 再查看文档, 或点击右上角后在外部浏览器打开查阅\n\n若能正常浏览文档请忽略此项提示",
                             )
                         }),
                     )

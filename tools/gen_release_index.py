@@ -51,6 +51,24 @@ def changelog_section(text: str, tag: str) -> str:
     return body or "- 维护性更新"
 
 
+def check_last_release_version(about_file: pathlib.Path, prev_version: str) -> None:
+    """「关于」页的 LAST_RELEASE_VERSION 必须等于上一个已发布版本, 传空则跳过。"""
+    if not prev_version or not about_file.is_file():
+        return
+    text = about_file.read_text(encoding="utf-8")
+    match = re.search(
+        r'private const val LAST_RELEASE_VERSION\s*=\s*"([^"]+)"', text
+    )
+    if not match:
+        raise SystemExit(f"在 {about_file} 里找不到 LAST_RELEASE_VERSION")
+    actual = match.group(1)
+    if actual != prev_version:
+        raise SystemExit(
+            f"「关于」页 LAST_RELEASE_VERSION={actual}, 但上一个 tag 是 {prev_version};"
+            " 发版前请把它改成上一个版本号"
+        )
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--apk", required=True)
@@ -60,6 +78,15 @@ def main() -> int:
     ap.add_argument("--gradle-file", default="gkd-app/build.gradle.kts")
     ap.add_argument("--out-index", required=True)
     ap.add_argument("--out-notes", required=True)
+    ap.add_argument(
+        "--prev-tag",
+        default="",
+        help="上一个 git tag, 用于校验「关于」页 LAST_RELEASE_VERSION 是否已同步",
+    )
+    ap.add_argument(
+        "--about-file",
+        default="gkd-app/src/main/kotlin/li/gkd/app/feature/settings/AboutPage.kt",
+    )
     args = ap.parse_args()
 
     apk_path = pathlib.Path(args.apk)
@@ -83,6 +110,11 @@ def main() -> int:
         raise SystemExit(
             f"tag {args.tag} 与 build.gradle.kts 的 versionName {version_name} 不一致"
         )
+
+    # 「关于」页的「上次更新」是手填常量, 最容易忘记同步 —— 有上一个 tag 就顺手校验
+    check_last_release_version(
+        pathlib.Path(args.about_file), args.prev_tag.lstrip("v")
+    )
 
     download_url = (
         f"https://github.com/{args.repo}/releases/download/{args.tag}/{apk_path.name}"

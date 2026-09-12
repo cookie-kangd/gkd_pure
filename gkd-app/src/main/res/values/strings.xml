@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 与官方 GKD 同名会在桌面分不清, 因此加上「纯净版」后缀 (调试构建会再追加 -debug) -->
-    <string name="app_name" debug_suffix="true">GKD 纯净版</string>
+    <!-- 与官方 GKD 同名会在桌面分不清, 因此统一用 gkd_pure 这个名字 (调试构建会自动追加 -debug) -->
+    <string name="app_name" debug_suffix="true">gkd_pure</string>
     <string name="a11y_desc">基于高级选择器和订阅规则的屏幕自定义点击服务\n\n通过自定义选择器和订阅规则，能帮助你实现点击任意位置控件，自定义快捷操作等高级功能</string>
     <string name="import_backup" debug_suffix="true">导入备份</string>
     <string name="capture_snapshot" debug_suffix="true">捕获快照</string>

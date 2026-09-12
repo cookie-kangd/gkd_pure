@@ -39,7 +39,7 @@ fun TermsAcceptDialog() {
                 Text(
                     modifier = modifier,
                     text = buildAnnotatedString {
-                        append("感谢使用 GKD！您需要阅读并同意「")
+                        append("感谢使用 gkd_pure！您需要阅读并同意「")
                         withLink(
                             LinkAnnotation.Url(
                                 ShortUrlSet.URL12,
@@ -64,7 +64,7 @@ fun TermsAcceptDialog() {
             "关于无障碍" to @Composable {
                 Text(
                     modifier = modifier,
-                    text = "GKD 请求使用系统「无障碍 API」获取屏幕信息, 以此基于用户自定义订阅规则执行自动化操作",
+                    text = "gkd_pure 请求使用系统「无障碍 API」获取屏幕信息, 以此基于用户自定义订阅规则执行自动化操作",
                 )
             }
         )

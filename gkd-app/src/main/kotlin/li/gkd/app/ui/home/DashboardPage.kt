@@ -57,7 +57,6 @@ import li.gkd.app.feature.log.ActionLogRoute
 import li.gkd.app.feature.log.ActivityLogRoute
 import li.gkd.app.ui.AppConfigRoute
 import li.gkd.app.ui.PrivilegeServiceRoute
-import li.gkd.app.ui.WebViewRoute
 import li.gkd.app.feature.settings.WorkModeRoute
 import li.gkd.app.ui.component.GroupNameText
 import li.gkd.app.ui.component.PerfIcon
@@ -71,7 +70,6 @@ import li.gkd.app.ui.style.EmptyHeight
 import li.gkd.app.ui.style.itemHorizontalPadding
 import li.gkd.app.ui.style.itemVerticalPadding
 import li.gkd.app.ui.style.surfaceCardColors
-import li.gkd.app.util.HOME_PAGE_URL
 import li.gkd.app.ui.share.launchUi
 import li.gkd.app.ui.share.statusText
 import li.gkd.app.util.throttle
@@ -265,14 +263,6 @@ fun useDashboardPage(): ScaffoldExt {
                     })
             }
 
-            PageItemCard(
-                title = "了解 GKD",
-                subtitle = "查阅规则文档和常见问题",
-                imageVector = PerfIcon.HelpOutline,
-                onClickLabel = "打开 GKD 文档页面",
-                onClick = {
-                    mainVm.navigatePage(WebViewRoute(initUrl = HOME_PAGE_URL))
-                })
             Spacer(modifier = Modifier.height(EmptyHeight))
         }
     }

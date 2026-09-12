@@ -13,6 +13,7 @@ ktor = "3.5.2"
 atomicfu = "0.33.0"
 coil = "3.5.0"
 telephoto = "0.19.0"
+haze = "1.7.3"
 remap = "0.1.5"
 shizuku = "13.1.5"
 priv-kit = "0.10.0"
@@ -74,6 +75,7 @@ coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" 
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 telephoto-zoomable = { module = "me.saket.telephoto:zoomable", version.ref = "telephoto" }
+haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 codeorigin = { module = "li.songe:codeorigin", version.ref = "codeorigin" }
 reorderable = "sh.calvin.reorderable:reorderable:3.1.0"
 exp4j = "net.objecthunter:exp4j:0.4.8"

@@ -100,12 +100,16 @@ jobs:
       - name: Generate release index
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
+          # 上一个 tag 用于校验「关于」页的「上次更新」版本号是否已同步
+          PREV_TAG=$(git tag --sort=-v:refname | grep -vx "$GITHUB_REF_NAME" | head -n 1)
+          echo "prev tag = ${PREV_TAG:-<none>}"
           python3 tools/gen_release_index.py \
             --apk "${{ steps.apk.outputs.path }}" \
             --tag "$GITHUB_REF_NAME" \
             --repo "$GITHUB_REPOSITORY" \
             --changelog CHANGELOG.md \
             --gradle-file gkd-app/build.gradle.kts \
+            --prev-tag "$PREV_TAG" \
             --out-index out/index.json \
             --out-notes out/release_notes.md
           cat out/index.json
@@ -142,6 +146,6 @@ jobs:
             "${{ steps.apk.outputs.path }}" \
             out/index.json \
             --target "${{ github.sha }}" \
-            --title "GKD 纯净版 $TAG" \
+            --title "gkd_pure $TAG" \
             --notes-file out/release_notes.md \
             --latest

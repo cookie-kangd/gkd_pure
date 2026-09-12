@@ -17,8 +17,6 @@ const val GITHUB_PROXY_PREFIX = "https://v4.gh-proxy.org/"
 // 每次发版由 CI 生成并作为 Release 资产上传, 结构见 Upgrade.kt 的 NewVersion
 const val RELEASE_INDEX_URL = "${REPOSITORY_URL}/releases/latest/download/index.json"
 
-const val HOME_PAGE_URL = "https://gkd.li"
-
 const val EMPTY_RULE_TIP = "暂无规则"
 
 object ShortUrlSet {
@@ -26,10 +24,8 @@ object ShortUrlSet {
     const val URL2 = "https://gkd.li?r=2"
     const val URL5 = "https://gkd.li?r=5"
     const val URL6 = "https://gkd.li?r=6"
-    const val URL10 = "https://gkd.li?r=10"
     const val URL11 = "https://gkd.li?r=11"
     const val URL12 = "https://gkd.li?r=12"
-    const val URL13 = "https://gkd.li?r=13"
     const val URL15 = "https://gkd.li?r=15"
 }
 

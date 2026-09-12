@@ -3,9 +3,11 @@ package li.gkd.app.feature.settings
 import androidx.compose.animation.graphics.res.animatedVectorResource
 import androidx.compose.animation.graphics.res.rememberAnimatedVectorPainter
 import androidx.compose.animation.graphics.vector.AnimatedImageVector
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +15,12 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,16 +32,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavKey
@@ -44,38 +47,39 @@ import kotlinx.coroutines.isActive
 import kotlinx.serialization.Serializable
 import li.gkd.app.META
 import li.gkd.app.R
-import li.gkd.app.store.AppStore.storeFlow
-import li.gkd.app.store.AppStore
 import li.gkd.app.ui.component.PerfIcon
 import li.gkd.app.ui.component.PerfIconButton
 import li.gkd.app.ui.component.PerfTopAppBar
 import li.gkd.app.ui.component.RotatingLoadingIcon
-import li.gkd.app.ui.component.SettingItem
-import li.gkd.app.ui.component.TextMenu
 import li.gkd.app.ui.share.LocalDarkTheme
 import li.gkd.app.ui.share.LocalMainViewModel
 import li.gkd.app.ui.style.EmptyHeight
-import li.gkd.app.ui.style.itemPadding
-import li.gkd.app.ui.style.titleItemPadding
-import li.gkd.app.util.ISSUES_URL
-import li.gkd.app.util.REPOSITORY_URL
-import li.gkd.app.util.ShortUrlSet
-import li.gkd.app.util.UpdateChannelOption
-import li.gkd.app.util.findOption
-import li.gkd.app.ui.share.launchUiAction
-import li.gkd.app.ui.share.launchUi
+import li.gkd.app.ui.style.itemHorizontalPadding
+import li.gkd.app.ui.style.itemVerticalPadding
+import li.gkd.app.ui.style.surfaceCardColors
 import li.gkd.app.util.throttle
 import li.gkd.app.util.ToastUtils.toast
 
 @Serializable
 data object AboutRoute : NavKey
 
+/**
+ * 上一个已发布版本的版本号与更新内容（「关于」页「上次更新」卡片展示用）。
+ *
+ * ⚠️ 每次发新版时必须手动同步：把这里换成「这次发版前的那个版本」，
+ * 当前版本由 META.versionName 动态读取，无需维护。
+ * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
+ */
+private const val LAST_RELEASE_VERSION = "0.1.1"
+private val LAST_RELEASE_NOTES = listOf(
+    "产物更名为 `gkd_pure-v<版本>.apk`，与官方 GKD 区分开",
+    "「检查更新」改为指向本仓库 Release，不再检查官方版本",
+    "下载优先走 gh-proxy 镜像，镜像不通时自动回落 GitHub 直链",
+).joinToString("\n") { "· $it" }
+
 @Composable
 fun AboutPage() {
     val mainVm = LocalMainViewModel.current
-    var showVersionInfoDialog by rememberSaveable { mutableStateOf(false) }
-    var showShareAppDialog by rememberSaveable { mutableStateOf(false) }
-
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -91,12 +95,6 @@ fun AboutPage() {
                     )
                 },
                 title = { Text(text = "关于") },
-                actions = {
-                    PerfIconButton(
-                        imageVector = PerfIcon.Share,
-                        onClick = { showShareAppDialog = true },
-                    )
-                }
             )
         }
     ) { contentPadding ->
@@ -104,159 +102,166 @@ fun AboutPage() {
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .padding(contentPadding),
+                .padding(contentPadding)
+                .padding(horizontal = itemHorizontalPadding),
+            verticalArrangement = Arrangement.spacedBy(itemVerticalPadding),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                AnimatedLogoIcon(
-                    modifier = Modifier
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = throttle { toast("你干嘛~ 哎呦~") }
-                        )
-                        .fillMaxWidth(0.33f)
-                        .aspectRatio(1f)
-                )
-                Column(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.extraSmall)
-                        .clickable(onClick = { showVersionInfoDialog = true })
-                        .padding(horizontal = 4.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Text(text = META.appName, style = MaterialTheme.typography.titleMedium)
-                    Text(
-                        text = META.versionName,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Spacer(modifier = Modifier.height(32.dp))
-            }
-
-            SettingItem(
-                imageVector = null,
-                title = "开源代码",
-                onClick = {
-                    mainVm.openUrl(REPOSITORY_URL)
-                },
+            AboutHeader()
+            AboutIntroCard()
+            AboutUpdateCard()
+            AboutLastReleaseCard()
+            Text(
+                text = "${META.appName} v${META.versionName}",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
+                textAlign = TextAlign.Center,
             )
-            if (META.isGkdChannel) {
-                SettingItem(
-                    imageVector = null,
-                    title = "捐赠支持",
-                    onClick = {
-                        mainVm.navigateWebPage(ShortUrlSet.URL10)
-                    },
-                )
-            }
-            SettingItem(
-                imageVector = null,
-                title = "使用协议",
-                onClick = {
-                    mainVm.navigateWebPage(ShortUrlSet.URL12)
-                },
-            )
-            SettingItem(
-                imageVector = null,
-                title = "隐私政策",
-                onClick = {
-                    mainVm.navigateWebPage(ShortUrlSet.URL11)
-                },
-            )
-
-            FeedbackSection()
-            SettingItem(
-                title = "导出日志",
-                imageVector = PerfIcon.Share,
-                onClick = {
-                    mainVm.shareLog.show()
-                }
-            )
-            if (mainVm.updateStatus != null) {
-                Text(
-                    text = "更新",
-                    modifier = Modifier.titleItemPadding(),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Row(
-                    modifier = Modifier
-                        .clickable(
-                            onClick = throttle {
-                                mainVm.updateStatus.checkUpdate(true)
-                            }
-                        )
-                        .fillMaxWidth()
-                        .itemPadding(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "检查更新",
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                    RotatingLoadingIcon(loading = mainVm.updateStatus.checkUpdatingFlow.collectAsStateWithLifecycle().value)
-                }
-            }
             Spacer(modifier = Modifier.height(EmptyHeight))
         }
     }
-
-    AboutDialogs(
-        showVersionInfo = showVersionInfoDialog,
-        onDismissVersionInfo = { showVersionInfoDialog = false },
-        showShareApp = showShareAppDialog,
-        onDismissShareApp = { showShareAppDialog = false },
-    )
 }
 
 @Composable
-private fun FeedbackSection() {
-    val mainVm = LocalMainViewModel.current
-    val primaryColor = MaterialTheme.colorScheme.primary
-    Text(
-        text = "反馈",
-        modifier = Modifier.titleItemPadding(),
-        style = MaterialTheme.typography.titleSmall,
-        color = primaryColor,
-    )
+private fun AboutHeader() {
     Column(
         modifier = Modifier
-            .clickable(onClick = throttle(mainVm.scope.launchUiAction {
-                val noticeText = buildAnnotatedString {
-                    val highlightStyle = SpanStyle(
-                        fontWeight = FontWeight.Bold,
-                        color = primaryColor,
-                    )
-                    append("感谢您愿意花时间反馈，")
-                    withStyle(style = highlightStyle) {
-                        append("GKD 默认不携带任何规则，只接受应用本体功能相关的反馈")
-                    }
-                    append("\n\n")
-                    append("请先判断是不是第三方规则订阅的问题，如果是，您应该向规则提供者反馈，而不是在此处反馈。")
-                    withStyle(style = highlightStyle) {
-                        append("如果您已经确信是 GKD 应用本体的问题")
-                    }
-                    append("，可点击下方继续反馈")
-                }
-                if (!mainVm.dialogRequests.confirm(
-                    title = "反馈须知",
-                    text = noticeText,
-                    confirmText = "继续",
-                    dismissOnRequest = true,
-                )) return@launchUiAction
-                mainVm.openUrl(ISSUES_URL)
-            }))
             .fillMaxWidth()
-            .itemPadding()
+            .padding(top = 12.dp, bottom = 4.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Text(
-            text = "问题反馈",
-            style = MaterialTheme.typography.bodyLarge,
+        AnimatedLogoIcon(
+            modifier = Modifier
+                .clickable(
+                    indication = null,
+                    interactionSource = remember { MutableInteractionSource() },
+                    onClick = throttle { toast("你干嘛~ 哎呦~") }
+                )
+                .fillMaxWidth(0.33f)
+                .aspectRatio(1f)
         )
+        Text(
+            text = META.appName,
+            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
+        )
+        Text(
+            text = "v${META.versionName}",
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+        )
+    }
+}
+
+@Composable
+private fun AboutIntroCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = surfaceCardColors,
+    ) {
+        Column(modifier = Modifier.padding(itemVerticalPadding + 4.dp)) {
+            Text(
+                text = "应用简介",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "基于高级选择器和订阅规则的屏幕自定义点击工具，fork 自 gkd-kit/gkd，跟随上游功能，只调整发布链路与界面。",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.75f),
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            listOf(
+                "自定义规则：按选择器定位控件并自动点击",
+                "订阅规则：一次订阅即可批量管理各类应用的规则",
+                "触发记录：误触可快速定位并关闭对应规则",
+                "应用内检查更新，自动走镜像加速下载",
+            ).forEach { feature ->
+                Row(
+                    modifier = Modifier.padding(vertical = 3.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(5.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)),
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = feature,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AboutUpdateCard() {
+    val mainVm = LocalMainViewModel.current
+    val updateStatus = mainVm.updateStatus ?: return
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = surfaceCardColors,
+    ) {
+        Row(
+            modifier = Modifier
+                .clickable(onClick = throttle { updateStatus.checkUpdate(true) })
+                .fillMaxWidth()
+                .padding(itemVerticalPadding + 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "检查更新",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                )
+                Text(
+                    text = "当前版本 v${META.versionName} · 点击检查新版本",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                )
+            }
+            RotatingLoadingIcon(
+                loading = updateStatus.checkUpdatingFlow.collectAsStateWithLifecycle().value
+            )
+        }
+    }
+}
+
+@Composable
+private fun AboutLastReleaseCard() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.large,
+        colors = surfaceCardColors,
+    ) {
+        Column(modifier = Modifier.padding(itemVerticalPadding + 4.dp)) {
+            Text(
+                text = "上次更新",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "v$LAST_RELEASE_VERSION",
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = LAST_RELEASE_NOTES,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            )
+        }
     }
 }
 

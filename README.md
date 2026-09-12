@@ -1,6 +1,6 @@
-# GKD 纯净版 (gkd_pure)
+# gkd_pure
 
-基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 的个人自用构建，跟随上游代码，仅调整发布链路与少量默认行为。
+基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 的个人自用构建，跟随上游代码，仅调整发布链路、界面与少量默认行为。
 
 > **与官方版不兼容**：本包使用本项目自己的签名密钥，与官方 GKD 的签名不同，
 > 两者**不能互相覆盖安装**。若已装官方版，必须先卸载再装本版。
@@ -10,11 +10,13 @@
 
 | 项目 | 官方版 | 本版 |
 | --- | --- | --- |
-| 应用名 | GKD | GKD 纯净版 |
+| 应用名 | GKD | gkd_pure |
 | 产物名 | `gkd-v<版本>.apk` | `gkd_pure-v<版本>.apk` |
 | 检查更新 | 官方 npmmirror 通道 | 本仓库的 GitHub Release |
 | 下载加速 | — | 自动优先走 `gh-proxy` 镜像 |
 | 更新渠道选择 | 稳定版 / 测试版 | 已移除（本分支只有一条发布线） |
+| 底栏 | 系统默认导航栏 | 毛玻璃浮岛 |
+| 「关于」页 | 多项外部入口 | 仅简介 / 检查更新 / 上次更新 |
 
 其余功能与上游一致。
 
@@ -25,7 +27,7 @@
 国内网络如果直连 GitHub 较慢，可用镜像前缀：
 
 ```
-https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/latest/download/gkd_pure-v0.1.1.apk
+https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/latest/download/gkd_pure-v0.1.2.apk
 ```
 
 （应用内的「设置 → 关于 → 检查更新」已经内置了这个镜像，无需手动处理）

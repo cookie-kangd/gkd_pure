@@ -25,3 +25,6 @@ libs.versions.updates.toml
 
 # CI 产出的中间目录 (Collect APK / index.json 生成)
 /out
+
+# Python 缓存
+__pycache__/

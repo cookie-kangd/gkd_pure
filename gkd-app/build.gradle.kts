@@ -27,8 +27,8 @@ android {
     namespace = "li.gkd.app"
     defaultConfig {
         applicationId = "li.songe.gkd"
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -273,6 +273,8 @@ dependencies {
     implementation(libs.coil.network)
     implementation(libs.coil.gif)
     implementation(libs.telephoto.zoomable)
+    // 底栏毛玻璃浮岛
+    implementation(libs.haze)
 
     implementation(libs.exp4j)
 
