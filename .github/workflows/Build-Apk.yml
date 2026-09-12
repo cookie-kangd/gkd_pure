@@ -1,13 +1,20 @@
 name: Build-Apk
 
-# 任意分支推送时做一次快照构建 (只上传 artifact, 不创建 Release)
-# 提交信息以 chore: / chore( 开头会被跳过, 适合只改文档或配置的场景
+# 只在**功能分支**推送时做一次快照构建 (只上传 artifact, 不创建 Release)。
+# 提交信息以 chore: / chore( 开头会被跳过, 适合只改文档或配置的场景。
+#
+# ⚠️ 刻意排除 main:
+#   发版流程是「推 main + 推 vX.Y.Z 标签」, 标签那一次由 Build-Release.yml 负责构建并发布。
+#   如果这里也监听 main, 同一次发版就会并排跑两个几乎一样的构建（两个分支各一个 run）,
+#   既浪费 Actions 额度又让人分不清哪个才是发布产物。
+#   而且 main 的编译正确性由紧随其后的标签构建覆盖, 不需要重复验证。
+#   功能分支(如 deps/xxx)仍然会跑, 用作合并前的编译冒烟测试。
 on:
   workflow_dispatch:
 
   push:
-    branches:
-      - '**'
+    branches-ignore:
+      - main
     paths-ignore:
       - 'LICENSE'
       - '*.md'

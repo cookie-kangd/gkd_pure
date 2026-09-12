@@ -218,8 +218,12 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         if (querying) return
         // 无障碍从零启动时获取 safeActiveWindow 非常耗时
         if (byEvent == null && service.justStarted && !hasOthersService) return checkFutureStartJob()
+        // ⚠️ 必须在进入 @Synchronized 作用域时就置位，不能等协程真正开始跑再置位：
+        // 调用方来自 eventDispatcher / actionDispatcher 两个不同线程，launch 是异步的，
+        // 若在协程体内才把 querying 置为 true，两个线程会先后都通过上面的检查，
+        // 于是 queryAction（遍历规则 + 匹配节点树 + 写 action log）被重复执行一整轮。
+        querying = true
         scope.launchLogged(queryDispatcher) {
-            querying = true
             val st = if (META.debuggable) System.currentTimeMillis() else 0L
             try {
                 if (META.debuggable) {

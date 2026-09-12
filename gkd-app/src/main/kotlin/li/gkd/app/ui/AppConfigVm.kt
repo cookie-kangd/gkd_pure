@@ -245,13 +245,18 @@ class AppConfigVm(
                 }
             }
 
-            RuleSortOption.ByActionTime -> visiblePairs.map { entry ->
-                entry.first to entry.second.sortedBy { group ->
-                    -(sort.latestLogs.find {
-                        it.subsId == entry.first.subsItem.id &&
-                            it.groupType == group.groupType &&
-                            it.groupKey == group.key
-                    }?.id ?: 0)
+            RuleSortOption.ByActionTime -> {
+                // 先把「分组 -> 最近一次动作 id」建成 Map。
+                // 原来是在 sortedBy 的比较函数里对这个分组做一次线性 find，
+                // 复杂度 O(分组数 × 日志数)， 而 action_log 每写一条(每次规则命中)都会让
+                // Room 的 Flow 重新发射并触发整轮排序 —— 改成 Map 后是 O(分组数 + 日志数)。
+                val latestIdMap = sort.latestLogs.associate {
+                    Triple(it.subsId, it.groupType, it.groupKey) to it.id
+                }
+                visiblePairs.map { entry ->
+                    entry.first to entry.second.sortedBy { group ->
+                        -(latestIdMap[Triple(entry.first.subsItem.id, group.groupType, group.key)] ?: 0)
+                    }
                 }
             }
         }

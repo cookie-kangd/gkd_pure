@@ -70,11 +70,12 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.1"
+private const val LAST_RELEASE_VERSION = "0.1.2"
 private val LAST_RELEASE_NOTES = listOf(
-    "产物更名为 `gkd_pure-v<版本>.apk`，与官方 GKD 区分开",
-    "「检查更新」改为指向本仓库 Release，不再检查官方版本",
-    "下载优先走 gh-proxy 镜像，镜像不通时自动回落 GitHub 直链",
+    "应用名统一为 `gkd_pure`，桌面图标与 Release 标题不再与官方版混淆",
+    "底栏改为毛玻璃浮岛，滚动内容从浮岛背后透出并被实时模糊",
+    "「关于」页精简为 简介 / 检查更新 / 上次更新 三块",
+    "移除首页「了解 GKD」入口",
 ).joinToString("\n") { "· $it" }
 
 @Composable
