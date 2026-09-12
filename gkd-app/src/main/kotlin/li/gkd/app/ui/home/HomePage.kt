@@ -12,7 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.NavKey
@@ -104,22 +104,26 @@ fun HomePage() {
             },
             bottomBar = {},
         ) { contentPadding ->
-            val layoutDirection = LocalLayoutDirection.current
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     // 把整个内容层注册为模糊源, 浮岛才能对其背后的滚动内容做实时模糊
                     .hazeSource(hazeState)
             ) {
-                page.content(
-                    PaddingValues(
-                        start = contentPadding.calculateStartPadding(layoutDirection),
-                        top = contentPadding.calculateTopPadding(),
-                        end = contentPadding.calculateEndPadding(layoutDirection),
-                        // 列表底部多留一段, 保证最后一项能完整滚出浮岛区域
-                        bottom = contentPadding.calculateBottomPadding() + DockContentClearance,
-                    )
-                )
+                // 只在原 padding 的 bottom 上多加一段, 让列表末项能完整滚出浮岛区域。
+                // 这里手写实现而不是用 PaddingValues(start/top/end/bottom) 重建,
+                // 是因为只转发 left/right/top 不涉及 RTL 换算, 不会把左右搞反。
+                page.content(object : PaddingValues {
+                    override fun calculateTopPadding() = contentPadding.calculateTopPadding()
+                    override fun calculateBottomPadding() =
+                        contentPadding.calculateBottomPadding() + DockContentClearance
+
+                    override fun calculateLeftPadding(layoutDirection: LayoutDirection) =
+                        contentPadding.calculateLeftPadding(layoutDirection)
+
+                    override fun calculateRightPadding(layoutDirection: LayoutDirection) =
+                        contentPadding.calculateRightPadding(layoutDirection)
+                })
                 GlassBottomBar(
                     hazeState = hazeState,
                     selectedTab = selectedTab,
