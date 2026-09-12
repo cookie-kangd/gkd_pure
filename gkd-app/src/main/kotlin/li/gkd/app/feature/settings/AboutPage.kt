@@ -75,8 +75,6 @@ fun AboutPage() {
     val mainVm = LocalMainViewModel.current
     var showVersionInfoDialog by rememberSaveable { mutableStateOf(false) }
     var showShareAppDialog by rememberSaveable { mutableStateOf(false) }
-    val store by storeFlow.collectAsStateWithLifecycle()
-    val updateChannel = UpdateChannelOption.objects.findOption(store.updateChannel)
 
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
@@ -184,27 +182,6 @@ fun AboutPage() {
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                TextMenu(
-                    title = "更新渠道",
-                    option = updateChannel
-                ) {
-                    if (mainVm.updateStatus.checkUpdatingFlow.value) return@TextMenu
-                    if (it.value == UpdateChannelOption.Beta.value) {
-                        mainVm.scope.launchUi {
-                            if (!mainVm.dialogRequests.confirm(
-                                title = "版本渠道",
-                                text = "测试版本渠道更新快\n但不稳定可能存在较多BUG\n请谨慎使用",
-                            )) return@launchUi
-                            AppStore.updateSettings { settings ->
-                                settings.copy(updateChannel = it.value)
-                            }
-                        }
-                    } else {
-                        AppStore.updateSettings { settings ->
-                            settings.copy(updateChannel = it.value)
-                        }
-                    }
-                }
                 Row(
                     modifier = Modifier
                         .clickable(

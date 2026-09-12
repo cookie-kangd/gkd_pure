@@ -100,20 +100,15 @@ sealed class UpdateChannelOption(
 ) : Option<Int> {
     override val options get() = objects
 
+    // 只保留本仓库的发布通道: index.json 由 CI 在每次发版时生成并随 Release 一起发布
     data object Stable : UpdateChannelOption(
         0,
-        "稳定版",
-        "https://registry.npmmirror.com/@gkd-kit/app/latest/files/index.json"
-    )
-
-    data object Beta : UpdateChannelOption(
-        1,
-        "测试版",
-        "https://registry.npmmirror.com/@gkd-kit/app-beta/latest/files/index.json"
+        "正式版",
+        RELEASE_INDEX_URL
     )
 
     companion object {
-        val objects by lazy { listOf(Stable, Beta) }
+        val objects by lazy { listOf(Stable) }
     }
 }
 

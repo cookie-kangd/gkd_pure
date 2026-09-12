@@ -16,7 +16,12 @@ kotlin-js-store
 
 *.jks
 *.keystore
+*.p12
+*.pem
 *.apk
 *.zip
 local.properties
 libs.versions.updates.toml
+
+# CI 产出的中间目录 (Collect APK / index.json 生成)
+/out

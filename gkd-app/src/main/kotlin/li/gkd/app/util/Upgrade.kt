@@ -62,6 +62,29 @@ data class VersionLog(
 
 private var lastCheckTime = 0L
 
+/**
+ * 国内直连 github 的 release 资源不稳定, github 链接优先走 gh-proxy 镜像, 失败再回落直链。
+ * 返回顺序即尝试顺序; 非 github 链接原样返回单个元素。
+ */
+private fun mirrorUrlList(url: String): List<String> {
+    if (!url.startsWith(GITHUB_URL_PREFIX)) return listOf(url)
+    return listOf(GITHUB_PROXY_PREFIX + url, url)
+}
+
+private suspend fun fetchNewVersion(): NewVersion {
+    var lastError: Exception? = null
+    for (url in mirrorUrlList(UPDATE_URL)) {
+        try {
+            return client.get(url).body<NewVersion>()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            lastError = e
+        }
+    }
+    throw (lastError ?: Exception("检查更新失败"))
+}
+
 class UpdateStatus(val scope: CoroutineScope) {
     private val checkUpdatingMutex = MutexState()
     val checkUpdatingFlow
@@ -93,7 +116,7 @@ class UpdateStatus(val scope: CoroutineScope) {
                     if (!NetworkUtils.isAvailable()) {
                         error("网络不可用")
                     }
-                    val newVersion = client.get(UPDATE_URL).body<NewVersion>()
+                    val newVersion = fetchNewVersion()
                     if (newVersion.versionCode <= META.versionCode) {
                         if (manual) toast("暂无更新", loc = loc)
                         return@tryWithStateLock
@@ -123,33 +146,62 @@ class UpdateStatus(val scope: CoroutineScope) {
                 delete()
             }
         }
+        // 以 index.json 里的原始 github 地址为准, 下载时按镜像 -> 直链的顺序尝试
+        val downloadUrls = mirrorUrlList(
+            URI(UPDATE_URL).resolve(newVersion.downloadUrl).toString()
+        )
         downloadJob = scope.launch(Dispatchers.IO) {
             try {
-                val channel =
-                    client.get(URI(UPDATE_URL).resolve(newVersion.downloadUrl).toString()) {
-                        onDownload { bytesSentTotal, _ ->
-                            val downloadStatus = downloadStatusFlow.value
-                            if (downloadStatus is LoadStatus.Loading) {
-                                downloadStatusFlow.value = LoadStatus.Loading(
-                                    bytesSentTotal.toFloat() / (newVersion.fileSize)
-                                )
-                            } else if (downloadStatus is LoadStatus.Failure) {
-                                // 提前终止下载
-                                downloadJob?.cancel()
-                            }
-                        }
-                    }.bodyAsChannel()
-                if (downloadStatusFlow.value is LoadStatus.Loading) {
-                    channel.copyAndClose(apkFile.writeChannel())
-                    downloadStatusFlow.value = LoadStatus.Success(apkFile)
+                var lastError: Exception? = null
+                for (url in downloadUrls) {
+                    // 用户可能在下载过程中点了"终止下载"
+                    if (downloadStatusFlow.value !is LoadStatus.Loading) break
+                    try {
+                        downloadApk(url, newVersion.fileSize, apkFile)
+                        lastError = null
+                        break
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // 镜像不通时丢弃半截文件, 换下一个地址重试
+                        lastError = e
+                        apkFile.delete()
+                    }
                 }
-            } catch (e: Exception) {
+                val error = lastError
                 if (downloadStatusFlow.value is LoadStatus.Loading) {
-                    downloadStatusFlow.value = LoadStatus.Failure(e)
+                    if (error == null) {
+                        downloadStatusFlow.value = LoadStatus.Success(apkFile)
+                    } else {
+                        downloadStatusFlow.value = LoadStatus.Failure(error)
+                    }
                 }
             } finally {
                 downloadJob = null
             }
+        }
+    }
+
+    private suspend fun downloadApk(
+        url: String,
+        fileSize: Long,
+        apkFile: File,
+    ) {
+        val channel = client.get(url) {
+            onDownload { bytesSentTotal, _ ->
+                val downloadStatus = downloadStatusFlow.value
+                if (downloadStatus is LoadStatus.Loading) {
+                    downloadStatusFlow.value = LoadStatus.Loading(
+                        bytesSentTotal.toFloat() / fileSize
+                    )
+                } else if (downloadStatus is LoadStatus.Failure) {
+                    // 提前终止下载
+                    downloadJob?.cancel()
+                }
+            }
+        }.bodyAsChannel()
+        if (downloadStatusFlow.value is LoadStatus.Loading) {
+            channel.copyAndClose(apkFile.writeChannel())
         }
     }
 

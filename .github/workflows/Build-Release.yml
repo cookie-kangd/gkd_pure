@@ -94,11 +94,27 @@ jobs:
           echo "name=$NAME" >> "$GITHUB_OUTPUT"
           ls -l out
 
+      # 应用内「检查更新」读取的就是这个 index.json (见 gkd-app 的 li.gkd.app.util.Upgrade)
+      # 它以 Release 资产的形式发布, 因此更新检查的地址可以是一个固定的
+      # https://github.com/<owner>/<repo>/releases/latest/download/index.json
+      - name: Generate release index
+        if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        run: |
+          python3 tools/gen_release_index.py \
+            --apk "${{ steps.apk.outputs.path }}" \
+            --tag "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --changelog CHANGELOG.md \
+            --gradle-file gkd-app/build.gradle.kts \
+            --out-index out/index.json \
+            --out-notes out/release_notes.md
+          cat out/index.json
+
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: gkd-apk-${{ github.ref_name }}
-          path: out/*.apk
+          name: gkd-pure-${{ github.ref_name }}
+          path: out/*
           if-no-files-found: error
 
       - name: Create Release
@@ -114,22 +130,18 @@ jobs:
             gh release delete "$TAG" --yes
           fi
           {
-            echo "> 基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 的自定义构建"
             echo ""
-            echo "**提交**: [\`${GITHUB_SHA:0:7}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            echo "### 构建信息"
             echo ""
-            echo "**构建日志**: [Actions run #${GITHUB_RUN_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
-            echo ""
-            echo "### 安装说明"
-            echo ""
-            echo "1. 下载下方 APK 安装 (首次安装需在系统设置中允许该来源)"
-            echo "2. 本包与官方 GKD 签名不同, 若已装官方版需先卸载, 否则报签名冲突"
-            echo "3. 后续版本沿用同一密钥签名, 可直接覆盖升级"
-          } > release_body.md
-          cat release_body.md
+            echo "- 提交: [\`${GITHUB_SHA:0:7}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            echo "- 构建日志: [Actions run #${GITHUB_RUN_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+          } >> out/release_notes.md
+          cat out/release_notes.md
+          # index.json 必须与 APK 一起发布: 应用内检查更新读取的就是它
           gh release create "$TAG" \
             "${{ steps.apk.outputs.path }}" \
+            out/index.json \
             --target "${{ github.sha }}" \
             --title "GKD 纯净版 $TAG" \
-            --notes-file release_body.md \
+            --notes-file out/release_notes.md \
             --latest

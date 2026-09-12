@@ -48,6 +48,7 @@ import li.gkd.app.service.initA11yWhiteAppList
 import li.gkd.app.store.AppStore
 import li.gkd.app.util.AndroidTarget
 import li.gkd.app.util.LogUtils
+import li.gkd.app.util.REPOSITORY_URL
 import li.gkd.app.util.FolderUtils
 import li.gkd.app.util.deviceInfoDesc
 import li.gkd.app.util.ToastUtils.initToast
@@ -93,9 +94,8 @@ data class AppMeta(
     val appId: String = app.packageName!!,
     val appName: String = app.getString(R.string.app_name)
 ) {
-    val commitUrl = "https://github.com/gkd-kit/gkd/".run {
-        plus(if (tagName != null) "tree/$tagName" else "commit/$commitId")
-    }
+    val commitUrl = "$REPOSITORY_URL/" +
+        (if (tagName != null) "tree/$tagName" else "commit/$commitId")
     val isGkdChannel get() = channel == "gkd"
     val updateEnabled get() = isGkdChannel
     val isBeta get() = versionName.contains("beta")
