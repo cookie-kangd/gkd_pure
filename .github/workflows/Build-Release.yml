@@ -1,73 +1,135 @@
 name: Build-Release
 
+# 触发方式:
+#   1. 推送 v* 标签 (例如 v0.1) -> 构建 APK 并创建/更新对应的 GitHub Release
+#   2. 手动 workflow_dispatch -> 只构建并上传 artifact, 不创建 Release (冒烟验证用)
 on:
   push:
     tags:
-      - v*
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   build:
-    permissions:
-      contents: write
+    name: Build APK
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # 必须为 0: buildSrc/Git.kt 用 `git describe --tags --exact-match` 判断是否处于标签上,
+          # 浅克隆拿不到 tag, 会导致 versionName 被追加 "-<sha7>" 后缀
+          fetch-depth: 0
 
-      - uses: actions/setup-java@v6
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
 
-      - uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-encryption-key: ${{ secrets.GRADLE_CACHE_ENCRYPTION_KEY }}
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
 
-      - name: write gkd keystore
-        run: echo ${{ secrets.GKD_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/gkd.jks
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
 
-      - name: write play keystore
-        run: echo ${{ secrets.PLAY_STORE_FILE_BASE64 }} | base64 --decode > ${{ github.workspace }}/play.jks
-
-      - run: ./gradlew :gkd-app:assembleGkdRelease :gkd-app:bundlePlayRelease
+      # 仓库配了签名密钥就用密钥签名, 否则回落到 debug 签名 (gkd-app/build.gradle.kts 内置回退逻辑)
+      - name: Decode keystore from secrets
+        id: ks
         env:
-          GKD_GITHUB_COOKIE: ${{ secrets.GKD_GITHUB_COOKIE }}
-          GKD_API_AUTH_TOKEN: ${{ secrets.GKD_API_AUTH_TOKEN }}
-          GKD_STORE_FILE: ${{ github.workspace }}/gkd.jks
+          GKD_STORE_FILE_BASE64: ${{ secrets.GKD_STORE_FILE_BASE64 }}
+          GKD_STORE_PASSWORD: ${{ secrets.GKD_STORE_PASSWORD }}
+          GKD_KEY_ALIAS: ${{ secrets.GKD_KEY_ALIAS }}
+        run: |
+          if [ -z "$GKD_STORE_FILE_BASE64" ]; then
+            echo "ready=0" >> "$GITHUB_OUTPUT"
+            echo "::warning title=未配置签名密钥::未找到 GKD_STORE_FILE_BASE64, 本次使用 debug 签名"
+            exit 0
+          fi
+          mkdir -p "$RUNNER_TEMP/signing"
+          KEYSTORE="$RUNNER_TEMP/signing/gkd-release.p12"
+          printf '%s' "$GKD_STORE_FILE_BASE64" | base64 --decode > "$KEYSTORE"
+          # 先校验密钥可读, 避免跑完大半个构建才在签名阶段失败
+          keytool -list -keystore "$KEYSTORE" -storetype PKCS12 \
+            -storepass "$GKD_STORE_PASSWORD" -alias "$GKD_KEY_ALIAS"
+          echo "keystore=$KEYSTORE" >> "$GITHUB_OUTPUT"
+          echo "ready=1" >> "$GITHUB_OUTPUT"
+
+      - name: Build release APK (repo keystore)
+        if: steps.ks.outputs.ready == '1'
+        env:
+          GKD_RENAME_APK_FLAG: "1"
+          GKD_STORE_FILE: ${{ steps.ks.outputs.keystore }}
           GKD_STORE_PASSWORD: ${{ secrets.GKD_STORE_PASSWORD }}
           GKD_KEY_ALIAS: ${{ secrets.GKD_KEY_ALIAS }}
           GKD_KEY_PASSWORD: ${{ secrets.GKD_KEY_PASSWORD }}
-          PLAY_STORE_FILE: ${{ github.workspace }}/play.jks
-          PLAY_STORE_PASSWORD: ${{ secrets.PLAY_STORE_PASSWORD }}
-          PLAY_KEY_ALIAS: ${{ secrets.PLAY_KEY_ALIAS }}
-          PLAY_KEY_PASSWORD: ${{ secrets.PLAY_KEY_PASSWORD }}
+        run: ./gradlew :gkd-app:assembleGkdRelease --stacktrace
 
-      - uses: actions/upload-artifact@v7
+      - name: Build release APK (debug signature fallback)
+        if: steps.ks.outputs.ready != '1'
+        env:
+          GKD_RENAME_APK_FLAG: "1"
+        run: ./gradlew :gkd-app:assembleGkdRelease --stacktrace
+
+      - name: Collect APK
+        id: apk
+        run: |
+          SRC=$(find gkd-app/build/outputs/apk/gkd/release -name '*.apk' | head -n 1)
+          if [ -z "$SRC" ]; then
+            echo "::error::未找到构建产物 APK"
+            find gkd-app/build/outputs -type f | head -50
+            exit 1
+          fi
+          mkdir -p out
+          NAME=$(basename "$SRC")
+          cp "$SRC" "out/$NAME"
+          echo "path=out/$NAME" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+          ls -l out
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
         with:
-          name: release
-          path: gkd-app/build/outputs/apk/gkd/release
+          name: gkd-apk-${{ github.ref_name }}
+          path: out/*.apk
+          if-no-files-found: error
 
-      - uses: actions/upload-artifact@v7
-        with:
-          name: playRelease
-          path: gkd-app/build/outputs/bundle/playRelease
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: outputs
-          path: gkd-app/build/outputs
-
-      - run: |
-          cp outputs/apk/gkd/release/app-gkd-release.apk "${GITHUB_WORKSPACE}/gkd-${GITHUB_REF_NAME}.apk"
-          zip -r "${GITHUB_WORKSPACE}/outputs-${GITHUB_REF_NAME}.zip" outputs
-        working-directory: gkd-app/build
-
-      - uses: softprops/action-gh-release@v3
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body_path: ./CHANGELOG.md
-          prerelease: ${{ contains(github.ref_name, 'beta') }}
-          fail_on_unmatched_files: true
-          files: |
-            gkd-*.apk
-            outputs-*.zip
+      - name: Create Release
+        # 只在推送 v* 标签时发布; 此前没有这个限制, 推 main 也会走到这里
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && steps.apk.outputs.path != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="$GITHUB_REF_NAME"
+          # 同名 release 已存在时先删掉重建; release delete 不会删除 tag 本身
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "existing release $TAG found, replacing it"
+            gh release delete "$TAG" --yes
+          fi
+          {
+            echo "> 基于 [gkd-kit/gkd](https://github.com/gkd-kit/gkd) 的自定义构建"
+            echo ""
+            echo "**提交**: [\`${GITHUB_SHA:0:7}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})"
+            echo ""
+            echo "**构建日志**: [Actions run #${GITHUB_RUN_NUMBER}](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo ""
+            echo "### 安装说明"
+            echo ""
+            echo "1. 下载下方 APK 安装 (首次安装需在系统设置中允许该来源)"
+            echo "2. 本包与官方 GKD 签名不同, 若已装官方版需先卸载, 否则报签名冲突"
+            echo "3. 后续版本沿用同一密钥签名, 可直接覆盖升级"
+          } > release_body.md
+          cat release_body.md
+          gh release create "$TAG" \
+            "${{ steps.apk.outputs.path }}" \
+            --target "${{ github.sha }}" \
+            --title "GKD 纯净版 $TAG" \
+            --notes-file release_body.md \
+            --latest
