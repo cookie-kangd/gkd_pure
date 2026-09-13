@@ -27,7 +27,7 @@
 
 | 设备 | 架构 | 文件 |
 |---|---|---|
-| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.3.apk` |
+| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.4.apk` |
 
 国内直连 GitHub 下载慢？把 APK 链接前面拼上加速镜像前缀即可：
 
@@ -38,7 +38,7 @@
 | Cloudflare (v4/v6) | `https://v6.gh-proxy.org/` |
 | Fastly (v4) | `https://cdn.gh-proxy.org/` |
 
-示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.3/gkd_pure-v0.1.3.apk`
+示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.4/gkd_pure-v0.1.4.apk`
 
 - **系统要求**：Android 8.0（API 26）及以上
 - **应用内更新**：设置 → 关于 → 检查更新（已内置镜像加速 + 直链兜底，见下文）
@@ -219,7 +219,7 @@ GKD **默认不提供规则**。需要自行添加本地规则，或通过订阅
 1. 改 `gkd-app/build.gradle.kts` 里的 `versionCode`（+1）与 `versionName`
 2. 在 `CHANGELOG.md` 补一段 `## v<新版本>`（内容会进 Release 说明和更新弹窗）
 3. 同步 `AboutPage.kt` 的 `LAST_RELEASE_VERSION` 为上一个版本号（漏改 CI 会直接失败）
-4. 推送 `main`，再推 tag：`git tag v0.1.3 && git push origin v0.1.3`
+4. 推送 `main`，再推 tag：`git tag v0.1.4 && git push origin v0.1.4`
 
 `Build-Release.yml` 会自动构建、生成 `index.json`、创建 Release；
 `Build-Apk.yml` 只在**功能分支**上跑编译冒烟（已刻意排除 `main`，避免同一次发版并排跑两个构建）。
