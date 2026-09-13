@@ -70,7 +70,7 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.4"
+private const val LAST_RELEASE_VERSION = "0.1.5"
 private val LAST_RELEASE_NOTES = listOf(
     "图标重绘: 大圆角菱形镂空三棒, 桌面小尺寸下更清晰",
     "修复截屏服务权限声明错误 (Android 14+ 截屏快照可能失败)",

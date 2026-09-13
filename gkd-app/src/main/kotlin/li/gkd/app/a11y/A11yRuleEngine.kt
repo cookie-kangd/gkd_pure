@@ -251,7 +251,11 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
                 delay(300.milliseconds)
                 startQueryJob()
             }
-        } else if (activityRuleFlow.value.hasFeatureAction) {
+        } else if (isInteractive && activityRuleFlow.value.hasFeatureAction) {
+            // ⚠️ 必须门控 isInteractive: 该分支是无限轮询(等目标节点出现), 灭屏后屏幕上无任何
+            // 可跳过的内容, 若继续每 300ms 做全树规则匹配就是纯耗电; 亮屏时
+            // SCREEN_ON 广播 -> onScreenForcedActive -> startQueryJob -> checkFutureStartJob
+            // 会自然恢复轮询。
             scope.launch(actionDispatcher) {
                 delay(300.milliseconds)
                 startQueryJob(byForced = true)
