@@ -27,8 +27,8 @@ android {
     namespace = "li.gkd.app"
     defaultConfig {
         applicationId = "li.songe.gkd"
-        versionCode = 4
-        versionName = "0.1.3"
+        versionCode = 5
+        versionName = "0.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -284,9 +284,4 @@ dependencies {
 
     implementation(libs.json5)
     compileOnly(libs.codeorigin)
-
-    // compose-webview declares Material but does not use it.
-    implementation(libs.kevinnzouWebview) {
-        exclude(group = "com.google.android.material", module = "material")
-    }
 }

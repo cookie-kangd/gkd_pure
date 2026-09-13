@@ -52,8 +52,6 @@ import li.gkd.app.feature.subscription.SubsGlobalGroupListPage
 import li.gkd.app.feature.subscription.SubsGlobalGroupListRoute
 import li.gkd.app.feature.subscription.UpsertRuleGroupPage
 import li.gkd.app.feature.subscription.UpsertRuleGroupRoute
-import li.gkd.app.ui.WebViewPage
-import li.gkd.app.ui.WebViewRoute
 import li.gkd.app.feature.settings.WorkModePage
 import li.gkd.app.feature.settings.WorkModeRoute
 import li.gkd.app.ui.share.LocalMainViewModel
@@ -75,7 +73,6 @@ private val mainRouteEntryProvider = entryProvider {
     entry<EditBlockAppListRoute> { EditBlockAppListPage() }
     entry<SlowGroupRoute> { SlowGroupPage() }
     entry<SubsAppListRoute> { SubsAppListPage(it) }
-    entry<WebViewRoute> { WebViewPage(it) }
     entry<SubsCategoryRoute> { SubsCategoryPage(it) }
     entry<SubsGlobalGroupListRoute> { SubsGlobalGroupListPage(it) }
     entry<SubsGlobalGroupExcludeRoute> { SubsGlobalGroupExcludePage(it) }

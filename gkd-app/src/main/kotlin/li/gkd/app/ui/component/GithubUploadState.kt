@@ -1,8 +1,6 @@
 package li.gkd.app.ui.component
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
@@ -10,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,7 +38,6 @@ private class GithubUploadRequest(
 
 class GithubUploadState(
     private val scope: CoroutineScope,
-    private val onOpenCookieHelp: () -> Unit,
 ) {
     private val cookieFlow by lazy {
         FileStateStore.createTextFlow(
@@ -96,12 +92,6 @@ class GithubUploadState(
         if (uploadJob == null) {
             showCookieEditor()
         }
-    }
-
-    fun openCookieHelp() {
-        hideCookieEditor()
-        closeUploadStatus()
-        onOpenCookieHelp()
     }
 
     private fun executeRequest(request: GithubUploadRequest, cookie: String) {
@@ -187,17 +177,7 @@ class GithubUploadState(
                 properties = DialogProperties(dismissOnClickOutside = false),
                 onDismissRequest = ::dismissCookieEditor,
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(text = "Github Cookie")
-                        PerfIconButton(
-                            imageVector = PerfIcon.HelpOutline,
-                            onClick = throttle(::openCookieHelp),
-                        )
-                    }
+                    Text(text = "Github Cookie")
                 },
                 text = {
                     OutlinedTextField(

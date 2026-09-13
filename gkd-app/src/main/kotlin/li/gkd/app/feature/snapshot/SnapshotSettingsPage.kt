@@ -22,7 +22,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -48,7 +47,6 @@ import li.gkd.app.ui.share.LocalMainViewModel
 import li.gkd.app.ui.style.EmptyHeight
 import li.gkd.app.ui.style.titleItemPadding
 import li.gkd.app.util.AndroidTarget
-import li.gkd.app.util.ShortUrlSet
 import li.gkd.app.ui.share.launchUiAction
 import li.gkd.app.ui.share.launchUi
 import li.gkd.app.util.throttle
@@ -88,10 +86,6 @@ fun SnapshotSettingsPage() {
         CaptureScreenshotConfigDialog(
             appId = store.screenshotTargetAppId,
             eventSelector = store.screenshotEventSelector,
-            onOpenHelp = {
-                showCaptureScreenshotDialog = false
-                mainVm.navigateWebPage(ShortUrlSet.URL15)
-            },
             onDismissRequest = { showCaptureScreenshotDialog = false },
             onConfirm = { appId, selector ->
                 if (vm.saveCaptureScreenshotConfig(appId, selector)) {
@@ -202,7 +196,6 @@ fun SnapshotSettingsPage() {
 private fun CaptureScreenshotConfigDialog(
     appId: String,
     eventSelector: String,
-    onOpenHelp: () -> Unit,
     onDismissRequest: () -> Unit,
     onConfirm: (String, String) -> Unit,
 ) {
@@ -211,17 +204,7 @@ private fun CaptureScreenshotConfigDialog(
     AppAlertDialog(
         properties = DialogProperties(dismissOnClickOutside = false),
         title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = "截屏快照")
-                PerfIconButton(
-                    imageVector = PerfIcon.HelpOutline,
-                    onClick = throttle(onOpenHelp),
-                )
-            }
+            Text(text = "截屏快照")
         },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {

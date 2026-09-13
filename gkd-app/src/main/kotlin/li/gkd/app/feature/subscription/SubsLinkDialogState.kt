@@ -1,15 +1,12 @@
 package li.gkd.app.feature.subscription
 
 import android.webkit.URLUtil
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,8 +19,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import li.gkd.app.data.subscription.SubscriptionRepository
 import li.gkd.app.ui.component.AppAlertDialog
-import li.gkd.app.ui.component.PerfIcon
-import li.gkd.app.ui.component.PerfIconButton
 import li.gkd.app.ui.component.autoFocus
 import li.gkd.app.util.NetworkUtils
 import li.gkd.app.util.throttle
@@ -37,7 +32,6 @@ private data class SubsLinkDialogRequest(
 )
 
 class SubsLinkDialogState(
-    private val onOpenHelp: () -> Unit,
     private val requestLocalNetworkPermission: suspend () -> Boolean,
 ) {
     private val requestFlow = MutableStateFlow<SubsLinkDialogRequest?>(null)
@@ -77,11 +71,6 @@ class SubsLinkDialogState(
 
     private fun cancel() = complete(null)
 
-    private fun openHelp() {
-        cancel()
-        onOpenHelp()
-    }
-
     suspend fun request(initialValue: String = ""): String? {
         val existingUrls = withContext(Dispatchers.IO) {
             SubscriptionRepository.existingUpdateUrls()
@@ -117,24 +106,13 @@ class SubsLinkDialogState(
             AppAlertDialog(
                 properties = DialogProperties(dismissOnClickOutside = false),
                 title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(
-                            text = if (currentRequest.initialValue.isNotEmpty()) {
-                                "修改订阅"
-                            } else {
-                                "添加订阅"
-                            },
-                        )
-                        PerfIconButton(
-                            imageVector = PerfIcon.HelpOutline,
-                            contentDescription = "订阅帮助",
-                            onClick = throttle(::openHelp),
-                        )
-                    }
+                    Text(
+                        text = if (currentRequest.initialValue.isNotEmpty()) {
+                            "修改订阅"
+                        } else {
+                            "添加订阅"
+                        },
+                    )
                 },
                 text = {
                     OutlinedTextField(

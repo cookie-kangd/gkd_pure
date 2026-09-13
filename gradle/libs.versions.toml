@@ -83,7 +83,6 @@ toaster = "com.github.getActivity:Toaster:15.0"
 permissions = "com.github.getActivity:XXPermissions:28.3"
 device = "com.github.getActivity:DeviceCompat:2.6"
 json5 = "li.songe:json5:0.7.0"
-kevinnzouWebview = "io.github.kevinnzou:compose-webview:0.33.6"
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

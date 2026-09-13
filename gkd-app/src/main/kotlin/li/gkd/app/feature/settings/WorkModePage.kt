@@ -55,7 +55,6 @@ import li.gkd.app.ui.style.cardHorizontalPadding
 import li.gkd.app.ui.style.itemHorizontalPadding
 import li.gkd.app.ui.style.surfaceCardColors
 import li.gkd.app.util.AutomatorModeOption
-import li.gkd.app.util.ShortUrlSet
 import li.gkd.app.ui.share.launchUiAction
 import li.gkd.app.util.IntentUtils
 import li.gkd.app.util.throttle
@@ -157,7 +156,6 @@ fun WorkModePage() {
                                 .fillMaxWidth()
                                 .padding(horizontal = cardHorizontalPadding),
                             verticalAlignment = Alignment.Bottom,
-                            horizontalArrangement = Arrangement.SpaceBetween,
                         ) {
                             TextButton(
                                 onClick = throttle { IntentUtils.openA11ySettings() },
@@ -167,18 +165,6 @@ fun WorkModePage() {
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
-                            Text(
-                                modifier = Modifier
-                                    .padding(bottom = 12.dp)
-                                    .clip(MaterialTheme.shapes.extraSmall)
-                                    .clickable(onClick = throttle {
-                                        mainVm.navigateWebPage(ShortUrlSet.URL2)
-                                    })
-                                    .padding(horizontal = 4.dp),
-                                text = "无法开启无障碍?",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
                         }
                     }
                 )

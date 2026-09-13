@@ -35,7 +35,6 @@ import li.gkd.app.feature.settings.AdvancedPageRoute
 import li.gkd.app.ui.CrashReportRoute
 import li.gkd.app.ui.PrivilegeServiceRoute
 import li.gkd.app.feature.snapshot.SnapshotPageRoute
-import li.gkd.app.ui.WebViewRoute
 import li.gkd.app.ui.component.DialogRequests
 import li.gkd.app.ui.component.GithubUploadState
 import li.gkd.app.feature.subscription.RuleGroupState
@@ -51,7 +50,6 @@ import li.gkd.app.ui.share.ActivityResultRequests
 import li.gkd.app.ui.share.launchUi
 import li.gkd.app.util.AutomatorModeOption
 import li.gkd.app.util.LogUtils
-import li.gkd.app.util.ShortUrlSet
 import li.gkd.app.util.ThrottleTimer
 import li.gkd.app.util.UpdateStatus
 import li.gkd.app.util.FolderUtils
@@ -129,15 +127,12 @@ class MainViewModel : BaseViewModel() {
         }
     }
 
-    fun navigateWebPage(url: String) = navigatePage(WebViewRoute(url))
-
     val dialogRequests = DialogRequests()
 
     val updateStatus = if (META.updateEnabled) UpdateStatus(scope) else null
 
     val githubUpload = GithubUploadState(
         scope = scope,
-        onOpenCookieHelp = { navigateWebPage(ShortUrlSet.URL1) },
     )
 
     val shareLog = ShareLogState(
@@ -146,7 +141,6 @@ class MainViewModel : BaseViewModel() {
     )
 
     val subsLinkDialog = SubsLinkDialogState(
-        onOpenHelp = { navigateWebPage(ShortUrlSet.URL5) },
         requestLocalNetworkPermission = {
             permissionRequests.ensurePermissions(PermissionStates.localNetwork)
         },

@@ -210,9 +210,6 @@ private fun AdvancedContent() {
             SettingItem(
                 title = "GitHub Cookie",
                 subtitle = "生成快照/日志链接",
-                suffix = "获取教程",
-                suffixUnderline = true,
-                onSuffixClick = mainVm.githubUpload::openCookieHelp,
                 imageVector = PerfIcon.Edit,
                 onClick = mainVm.githubUpload::editCookie,
             )

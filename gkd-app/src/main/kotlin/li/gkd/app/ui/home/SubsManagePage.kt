@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import li.gkd.app.R
@@ -45,7 +43,6 @@ import li.gkd.app.feature.subscription.UpsertRuleGroupRoute
 import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.data.subscription.SubscriptionState
 import li.gkd.app.ui.SlowGroupRoute
-import li.gkd.app.ui.WebViewRoute
 import li.gkd.app.ui.component.AnimationFloatingActionButton
 import li.gkd.app.ui.component.AppAlertDialog
 import li.gkd.app.ui.component.BatchActionMenuItem
@@ -65,7 +62,6 @@ import li.gkd.app.ui.share.LocalMainViewModel
 import li.gkd.app.ui.share.launchUi
 import li.gkd.app.ui.share.message
 import li.gkd.app.ui.style.EmptyHeight
-import li.gkd.app.util.ShortUrlSet
 import li.gkd.app.util.ToastUtils.toast
 import li.gkd.app.util.UpdateTimeOption
 import li.gkd.app.util.findOption
@@ -164,18 +160,9 @@ private fun useLoadedSubsManagePage(
         AppAlertDialog(
             title = { Text(text = "耗电警告") },
             text = {
-                Column {
-                    Text(text = "启用多个远程订阅可能导致执行大量重复规则, 这可能造成规则执行卡顿以及多余耗电\n\n请认真考虑后再确认开启！！！\n")
-                    Text(
-                        text = "查看耗电说明",
-                        modifier = Modifier.clickable(onClick = throttle {
-                            vm.dismissPowerWarning()
-                            mainVm.navigatePage(WebViewRoute(initUrl = ShortUrlSet.URL6))
-                        }),
-                        textDecoration = TextDecoration.Underline,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                }
+                Text(
+                    text = "启用多个远程订阅可能导致执行大量重复规则, 这可能造成规则执行卡顿以及多余耗电\n\n请认真考虑后再确认开启！！！\n"
+                )
             },
             onDismissRequest = {},
             confirmButton = {

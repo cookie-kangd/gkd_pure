@@ -2,23 +2,15 @@ package li.gkd.app.ui.component
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withLink
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import li.gkd.app.MainActivity
 import li.gkd.app.ui.share.LocalMainViewModel
-import li.gkd.app.util.ShortUrlSet
 import li.gkd.app.util.throttle
 
 
@@ -30,35 +22,11 @@ fun TermsAcceptDialog() {
     val stepDataList = remember {
         arrayOf(
             "使用声明" to @Composable {
-                val linkStyles = TextLinkStyles(
-                    style = SpanStyle(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                    )
-                )
                 Text(
                     modifier = modifier,
-                    text = buildAnnotatedString {
-                        append("感谢使用 gkd_pure！您需要阅读并同意「")
-                        withLink(
-                            LinkAnnotation.Url(
-                                ShortUrlSet.URL12,
-                                linkStyles
-                            )
-                        ) {
-                            append("用户协议")
-                        }
-                        append("」和「")
-                        withLink(
-                            LinkAnnotation.Url(
-                                ShortUrlSet.URL11,
-                                linkStyles
-                            )
-                        ) {
-                            append("隐私政策")
-                        }
-                        append("」才能继续使用, 请仔细阅读相关内容")
-                    },
+                    text = "感谢使用 gkd_pure！\n\n" +
+                            "本应用完全在本地运行: 不收集、不上传您的任何个人信息, 不内置任何统计或上报组件。\n\n" +
+                            "应用基于开源项目 GKD 二次开发, 请合理使用订阅规则自动化功能, 遵守设备与目标应用的使用条款",
                 )
             },
             "关于无障碍" to @Composable {
