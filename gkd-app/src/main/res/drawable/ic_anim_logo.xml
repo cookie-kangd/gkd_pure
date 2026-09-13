@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- gkd_pure 动画 logo: 菱形 + 三阶圆头条, 保留原版的轻微浮动动画 -->
+<!-- gkd_pure 动画 logo: 与启动图标同构的大圆角菱形镂空三棒, 保留轻微浮动动画 -->
 <animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:aapt="http://schemas.android.com/aapt">
     <aapt:attr name="android:drawable">
@@ -11,21 +11,11 @@
             <group android:name="diamond">
                 <path
                     android:fillColor="#FFF"
-                    android:pathData="M32,7 L41,16 L32,25 L23,16 Z" />
-            </group>
-            <group android:name="bar_left">
-                <path
-                    android:fillColor="#FFF"
-                    android:pathData="M12,39 A5,5 0 0 1 22,39 L22,53 A5,5 0 0 1 12,53 Z" />
-            </group>
-            <path
-                android:name="bar_mid"
-                android:fillColor="#FFF"
-                android:pathData="M27,33 A5,5 0 0 1 37,33 L37,53 A5,5 0 0 1 27,53 Z" />
-            <group android:name="bar_right">
-                <path
-                    android:fillColor="#FFF"
-                    android:pathData="M42,39 A5,5 0 0 1 52,39 L52,53 A5,5 0 0 1 42,53 Z" />
+                    android:fillType="evenOdd"
+                    android:pathData="M28.464,13.536 Q32,10 35.536,13.536 L50.464,28.464 Q54,32 50.464,35.536 L35.536,50.464 Q32,54 28.464,50.464 L13.536,35.536 Q10,32 13.536,28.464 Z
+M29.5,26.5 A2.5,2.5 0 0 1 34.5,26.5 L34.5,37.5 A2.5,2.5 0 0 1 29.5,37.5 Z
+M39.5,28 A2.5,2.5 0 0 1 44.5,28 L44.5,36 A2.5,2.5 0 0 1 39.5,36 Z
+M19.5,29.5 A2.5,2.5 0 0 1 24.5,29.5 L24.5,34.5 A2.5,2.5 0 0 1 19.5,34.5 Z" />
             </group>
         </vector>
     </aapt:attr>
@@ -39,45 +29,6 @@
                 android:repeatMode="reverse"
                 android:valueFrom="0"
                 android:valueTo="-1.2"
-                android:valueType="floatType" />
-        </aapt:attr>
-    </target>
-    <target android:name="bar_left">
-        <aapt:attr name="android:animation">
-            <objectAnimator
-                android:duration="1000"
-                android:interpolator="@android:interpolator/accelerate_decelerate"
-                android:propertyName="translateY"
-                android:repeatCount="infinite"
-                android:repeatMode="reverse"
-                android:valueFrom="0"
-                android:valueTo="0.8"
-                android:valueType="floatType" />
-        </aapt:attr>
-    </target>
-    <target android:name="bar_mid">
-        <aapt:attr name="android:animation">
-            <objectAnimator
-                android:duration="1000"
-                android:interpolator="@android:interpolator/accelerate_decelerate"
-                android:propertyName="fillAlpha"
-                android:repeatCount="infinite"
-                android:repeatMode="reverse"
-                android:valueFrom="0.75"
-                android:valueTo="1"
-                android:valueType="floatType" />
-        </aapt:attr>
-    </target>
-    <target android:name="bar_right">
-        <aapt:attr name="android:animation">
-            <objectAnimator
-                android:duration="1000"
-                android:interpolator="@android:interpolator/accelerate_decelerate"
-                android:propertyName="translateY"
-                android:repeatCount="infinite"
-                android:repeatMode="reverse"
-                android:valueFrom="0"
-                android:valueTo="0.8"
                 android:valueType="floatType" />
         </aapt:attr>
     </target>

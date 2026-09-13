@@ -27,7 +27,7 @@
 
 | 设备 | 架构 | 文件 |
 |---|---|---|
-| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.4.apk` |
+| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.5.apk` |
 
 国内直连 GitHub 下载慢？把 APK 链接前面拼上加速镜像前缀即可：
 
@@ -38,7 +38,7 @@
 | Cloudflare (v4/v6) | `https://v6.gh-proxy.org/` |
 | Fastly (v4) | `https://cdn.gh-proxy.org/` |
 
-示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.4/gkd_pure-v0.1.4.apk`
+示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.5/gkd_pure-v0.1.5.apk`
 
 - **系统要求**：Android 8.0（API 26）及以上
 - **应用内更新**：设置 → 关于 → 检查更新（已内置镜像加速 + 直链兜底，见下文）
@@ -95,13 +95,13 @@
 | 下载加速 | — | 自动优先走 `gh-proxy` 镜像，失败回落直链 |
 | 更新渠道选择 | 稳定版 / 测试版 | 已移除（只有一条发布线） |
 | 底栏 | 系统默认导航栏 | 毛玻璃浮岛 |
-| 应用图标 | GKD 原版 | 纯净风格重绘（菱形 + 三阶条） |
+| 应用图标 | GKD 原版 | 纯净风格重绘（大圆角菱形镂空三棒） |
 | 站内文档跳转 | 常见问题 / 帮助等指向 gkd.li | 已全部移除（不内嵌网页查看器） |
 | 「关于」页 | 多项外部入口 | 仅 简介 / 检查更新 / 上次更新 |
 | 首页 | 有「了解 GKD」入口 | 已移除 |
 | 数据备份通道 | `allowBackup=true` | 已关闭（私有数据不可被备份提取） |
 
-**v0.1.4 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。
+**v0.1.5 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。本版本为 v0.1 系列最终版。
 
 ---
 
@@ -219,7 +219,7 @@ GKD **默认不提供规则**。需要自行添加本地规则，或通过订阅
 1. 改 `gkd-app/build.gradle.kts` 里的 `versionCode`（+1）与 `versionName`
 2. 在 `CHANGELOG.md` 补一段 `## v<新版本>`（内容会进 Release 说明和更新弹窗）
 3. 同步 `AboutPage.kt` 的 `LAST_RELEASE_VERSION` 为上一个版本号（漏改 CI 会直接失败）
-4. 推送 `main`，再推 tag：`git tag v0.1.4 && git push origin v0.1.4`
+4. 推送 `main`，再推 tag：`git tag v0.1.5 && git push origin v0.1.5`
 
 `Build-Release.yml` 会自动构建、生成 `index.json`、创建 Release；
 `Build-Apk.yml` 只在**功能分支**上跑编译冒烟（已刻意排除 `main`，避免同一次发版并排跑两个构建）。

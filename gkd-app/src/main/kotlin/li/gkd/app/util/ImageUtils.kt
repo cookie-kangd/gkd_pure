@@ -73,8 +73,8 @@ object ImageUtils {
             val uri: Uri = app.contentResolver.insert(contentUri, contentValues) ?: return false
             var os: OutputStream? = null
             try {
-                os = app.contentResolver.openOutputStream(uri)
-                src.compress(format, quality, os!!)
+                os = app.contentResolver.openOutputStream(uri) ?: return false
+                src.compress(format, quality, os)
                 contentValues.clear()
                 contentValues.put(MediaStore.MediaColumns.IS_PENDING, 0)
                 app.contentResolver.update(uri, contentValues, null, null)

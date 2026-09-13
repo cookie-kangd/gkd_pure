@@ -20,9 +20,3 @@ val TextUnit.px: Float
         value, app.resources.displayMetrics
     )
 
-///**
-// * px -> dp
-// */
-//val Int.calcDp: Float
-//    get() = this / app.resources.displayMetrics.density
-

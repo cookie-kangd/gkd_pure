@@ -70,12 +70,12 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.3"
+private const val LAST_RELEASE_VERSION = "0.1.4"
 private val LAST_RELEASE_NOTES = listOf(
-    "全新纯净风格应用图标，关于页动画 logo 同步更新",
-    "移除全部指向上游文档的跳转链接与内置网页文档查看器",
-    "安全收紧：关闭数据备份通道，隐私声明改为应用内本地文案",
-    "省电优化复查确认无回归，移除 compose-webview 依赖后安装包更小",
+    "图标重绘: 大圆角菱形镂空三棒, 桌面小尺寸下更清晰",
+    "修复截屏服务权限声明错误 (Android 14+ 截屏快照可能失败)",
+    "全项目定稿检查: 清理未用依赖与死代码, 修复两处空指针风险",
+    "无障碍隐私深查确认: 数据全程本地处理, 无任何外传",
 ).joinToString("\n") { "· $it" }
 
 @Composable

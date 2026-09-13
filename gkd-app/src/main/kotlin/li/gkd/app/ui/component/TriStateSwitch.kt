@@ -472,9 +472,6 @@ object TriStateSwitchDefaults {
         disabledIndeterminateBorderColor = disabledIndeterminateBorderColor,
         disabledIndeterminateIconColor = disabledIndeterminateIconColor,
     )
-
-    /** Icon size to use for `thumbContent`. */
-//    val IconSize = TriStateSwitchIconSize
 }
 
 /**

@@ -177,7 +177,7 @@ class App : Application() {
     }
 
     fun startLaunchActivity() {
-        val intent = packageManager.getLaunchIntentForPackage(META.appId)!!
+        val intent = packageManager.getLaunchIntentForPackage(META.appId) ?: return
         intent.addFlags(
             Intent.FLAG_ACTIVITY_NEW_TASK
                     or Intent.FLAG_ACTIVITY_CLEAR_TOP

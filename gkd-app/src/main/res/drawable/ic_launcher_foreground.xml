@@ -1,25 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- gkd_pure 图标前景: 菱形 + 三阶圆头条, 纯单色极简风格
-     菱形为原 GKD 标识的核心元素, 三条圆头条象征纯净层级 -->
+<!-- gkd_pure 图标前景: 大圆角菱形内镂空三条等化器棒（负空间构图）
+     菱形为原 GKD 标识核心元素, 单形+镂空保证任意尺寸下的辨识度 -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- 顶部菱形 -->
     <path
         android:fillColor="@color/ic_launcher_foreground_tint"
-        android:pathData="M54,26 L65,37 L54,48 L43,37 Z" />
-    <!-- 左条 -->
-    <path
-        android:fillColor="@color/ic_launcher_foreground_tint"
-        android:pathData="M30.5,66.5 A4.5,4.5 0 0 1 39.5,66.5 L39.5,77.5 A4.5,4.5 0 0 1 30.5,77.5 Z" />
-    <!-- 中条 (最高) -->
-    <path
-        android:fillColor="@color/ic_launcher_foreground_tint"
-        android:pathData="M49.5,58.5 A4.5,4.5 0 0 1 58.5,58.5 L58.5,77.5 A4.5,4.5 0 0 1 49.5,77.5 Z" />
-    <!-- 右条 -->
-    <path
-        android:fillColor="@color/ic_launcher_foreground_tint"
-        android:pathData="M68.5,66.5 A4.5,4.5 0 0 1 77.5,66.5 L77.5,77.5 A4.5,4.5 0 0 1 68.5,77.5 Z" />
+        android:fillType="evenOdd"
+        android:pathData="M49.757,28.243 Q54,24 58.243,28.243 L79.757,49.757 Q84,54 79.757,58.243 L58.243,79.757 Q54,84 49.757,79.757 L28.243,58.243 Q24,54 28.243,49.757 Z
+M50,45 A4,4 0 0 1 58,45 L58,63 A4,4 0 0 1 50,63 Z
+M63,48 A4,4 0 0 1 71,48 L71,60 A4,4 0 0 1 63,60 Z
+M37,50 A4,4 0 0 1 45,50 L45,58 A4,4 0 0 1 37,58 Z" />
 </vector>
