@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.toColorInt
 import com.hjq.toast.Toaster
 import com.hjq.toast.style.WhiteToastStyle
+import li.gkd.app.META
 import li.gkd.app.app
 import li.gkd.app.data.ResolvedRule
 import li.gkd.app.permission.PermissionStates
@@ -128,6 +129,9 @@ object ToastUtils {
                     .replace($$"${1}", rule.rule.name.toString())
                     .replace($$"${2}", rule.g.group.name)
                     .replace($$"${3}", actionCountFlow.value.toString())
+                    .ifBlank { // 提示模板被清空时回退为规则名, 避免弹出空提示看起来像"没提示"
+                        rule.rule.name.toString().ifBlank { META.appName }
+                    }
                 if (storeFlow.value.useSystemToast) {
                     showSystemToast(text)
                 } else {

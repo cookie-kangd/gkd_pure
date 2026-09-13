@@ -55,6 +55,12 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         startQueryJob()
     }
 
+    fun onScreenOff() {
+        // 熄屏零操作: 立即中断正在进行的节点遍历匹配, 避免熄屏瞬间还在跑的一轮
+        // queryAction 继续遍历节点树甚至执行点击。
+        a11yContext.interruptKey++
+    }
+
     val safeActiveWindow: AccessibilityNodeInfo?
         get() = try {
             // 某些应用耗时 554ms
@@ -81,9 +87,13 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         if (!event.isUseful()) return
         // 拒绝副屏无障碍事件
         if (AndroidTarget.TIRAMISU && event.displayId != Display.DEFAULT_DISPLAY) return
+        // ⚠️ 熄屏零操作: 屏幕关闭时丢弃全部无障碍事件, 不做任何规则匹配/点击。
+        // 上游只过滤了 CONTENT_CHANGED(type:2048), 但 STATE_CHANGED 等其他事件类型
+        // 熄屏后仍会进入匹配链路, 存在熄屏执行点击的风险。亮屏后由
+        // SCREEN_ON 广播 -> onScreenForcedActive 强制刷新顶部应用与规则, 功能完整恢复。
+        if (!isInteractive) return
         onA11yFeatEvent(event)
         if (event.eventType == CONTENT_CHANGED) {
-            if (!isInteractive) return // 屏幕关闭后仍然有无障碍事件 type:2048, time:8094, app:com.miui.aod, cls:android.widget.TextView
             if (event.packageName == systemUiAppId && event.packageName != currentTopActivity.appId) return
         }
         // 过滤部分输入法事件
@@ -213,6 +223,10 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         byDelayRule: ResolvedRule? = null,
     ) {
         if (!effective) return
+        // ⚠️ 熄屏零操作: 拦截一切熄屏后的查询/点击入口, 尤其是亮屏期间排下的
+        // actionDelayJob 延迟动作可能在熄屏后才到期执行。亮屏时 SCREEN_ON 广播
+        // -> onScreenForcedActive -> startQueryJob 会自然恢复。
+        if (!isInteractive) return
         if (!storeFlow.value.enableMatch) return
         if (activityRuleFlow.value.currentRules.isEmpty()) return
         if (querying) return

@@ -70,6 +70,10 @@ object A11yRuntime {
         service?.ruleEngine?.onScreenForcedActive()
     }
 
+    fun onScreenOff() {
+        service?.ruleEngine?.onScreenOff()
+    }
+
     fun performActionBack(): Boolean {
         val result = privilegeContextFlow.value?.keyevent(KeyEvent.KEYCODE_BACK)
         if (result == true) return true
