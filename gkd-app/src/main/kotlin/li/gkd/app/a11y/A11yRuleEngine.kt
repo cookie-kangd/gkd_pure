@@ -25,6 +25,7 @@ import li.gkd.app.priv.privilegeContextFlow
 import li.gkd.app.store.AppStore.actualBlockA11yAppList
 import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.AndroidTarget
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.launchLogged
 import li.gkd.app.util.ToastUtils.showActionToast
 import li.gkd.app.util.systemUiAppId
@@ -385,6 +386,8 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
             }
             val nodeVal = (lastNode ?: getTimeoutActiveWindow()) ?: continue
             val rightAppId = nodeVal.packageName?.toString() ?: break
+            // 受保护应用硬禁止: 兜底校验当前窗口包名, 无论规则来源如何配置
+            if (ProtectedApps.isProtected(rightAppId)) return
             val matchApp = rule.matchActivity(rightAppId)
             if (currentTopActivity.appId != rightAppId || (!matchApp && rule is AppRule)) {
                 scope.launch(eventDispatcher) { fixAppId(rightAppId) }

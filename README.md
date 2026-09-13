@@ -27,7 +27,7 @@
 
 | 设备 | 架构 | 文件 |
 |---|---|---|
-| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.8.apk` |
+| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.9.apk` |
 
 国内直连 GitHub 下载慢？把 APK 链接前面拼上加速镜像前缀即可：
 
@@ -38,7 +38,7 @@
 | Cloudflare (v4/v6) | `https://v6.gh-proxy.org/` |
 | Fastly (v4) | `https://cdn.gh-proxy.org/` |
 
-示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.8/gkd_pure-v0.1.8.apk`
+示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.9/gkd_pure-v0.1.9.apk`
 
 - **系统要求**：Android 8.0（API 26）及以上
 - **应用内更新**：设置 → 关于 → 检查更新（已内置镜像加速 + 直链兜底，见下文）
@@ -59,12 +59,14 @@
 | 本仓库 `releases/latest/download/index.json` | 检查更新 | 你主动点「检查更新」 |
 | GitHub Release / `gh-proxy` 镜像 | 下载新版 APK | 你确认下载后 |
 | 你添加的订阅链接 | 拉取规则订阅 | 你添加订阅后 / 你设置的自动更新周期（最短 1 天） |
-| `registry.npmmirror.com/@gkd-kit/docs/...` | 内置文档页取镜像地址 | 你打开内置文档页时 |
-| `gkd.li` | 官方帮助文档 | 你点击「使用帮助」等入口时 |
+| `f.gkd.li` / `i.gkd.li` 短链服务 | 快照分享与快照导入链接 | 你主动生成/分享快照时 |
+| `registry.npmmirror.com/@gkd-kit/config` | HTTP 调试页加载的网页脚本 | 你开启 HTTP 服务并用浏览器访问时 |
 | 用户主动发布的快照 / 日志链接 | 生成分享链接（需自备网络环境） | 你主动点「生成链接」时 |
 
-**说明**：`gkd.li?r=N` 里的 `r` 是**官方文档站的路由参数**（`r=1`/`r=5`/`r=6` 分别对应不同帮助页），
-不是引荐追踪码 —— 去掉会导致帮助链接全部跳到同一个页面，因此保留。
+**受保护应用（v0.1.9 起）**：支付宝、微信、云闪付、数字人民币及国内银行类应用（包名含 `bank` 等特征）
+属于资金交易类应用，本版在规则引擎层对其**硬禁止**——无论订阅规则（外部引入）或本地规则怎么写，
+都不会在这些应用内匹配、轮询或点击；导入包含这类规则的订阅时会明确提示拦截。
+该名单与任何设置无关，无法绕过。
 
 **权限清单**（每一项都是功能必需，没有多余权限）：
 
@@ -102,7 +104,7 @@
 | 首页 | 有「了解 GKD」入口 | 已移除 |
 | 数据备份通道 | `allowBackup=true` | 已关闭（私有数据不可被备份提取） |
 
-**v0.1.8 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。自 v0.1.8 起使用独立包名，在应用商店中不再与官方 GKD 互相干扰。
+**v0.1.9 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。自 v0.1.8 起使用独立包名不再与官方商店互相干扰；v0.1.9 起内置支付宝/微信/银行类等资金交易应用的强制保护名单。
 
 ---
 
@@ -155,6 +157,14 @@ v0.1.3 做过的优化（均为不改行为的低风险改动）：
 本包与官方 GKD 签名不同，且自 v0.1.8 起包名也不同（`io.github.cookiekangd.gkdpure`）。
 若手机上已有官方版（或其它人构建的版本），必须先卸载再安装本版；
 本项目 v0.1.7 及更早版本（旧包名 `li.songe.gkd`）也无法被 v0.1.8 覆盖，同样需先卸载（旧版订阅需重新导入）。从 v0.1.8 起签名与包名一致，之后可以正常覆盖升级。
+</details>
+
+<details>
+<summary><b>支付宝 / 微信 / 银行 app 里会生效吗？</b></summary>
+
+不会。v0.1.9 起内置「受保护应用」名单（资金交易类：支付宝、微信、云闪付、数字人民币、银行类），
+无论订阅规则（外部引入）或本地规则如何配置，引擎都不会在这些应用内执行任何匹配或点击，
+导入含此类规则的订阅时也会明确提示。这是引擎层强制，不是可开关的设置。
 </details>
 
 <details>
@@ -223,7 +233,7 @@ GKD 规则匹配的是**目标应用**的包名（如微信、抖音），与本
 1. 改 `gkd-app/build.gradle.kts` 里的 `versionCode`（+1）与 `versionName`
 2. 在 `CHANGELOG.md` 补一段 `## v<新版本>`（内容会进 Release 说明和更新弹窗）
 3. 同步 `AboutPage.kt` 的 `LAST_RELEASE_VERSION` 为上一个版本号（漏改 CI 会直接失败）
-4. 推送 `main`，再推 tag：`git tag v0.1.8 && git push origin v0.1.8`
+4. 推送 `main`，再推 tag：`git tag v0.1.9 && git push origin v0.1.9`
 
 `Build-Release.yml` 会自动构建、生成 `index.json`、创建 Release；
 `Build-Apk.yml` 只在**功能分支**上跑编译冒烟（已刻意排除 `main`，避免同一次发版并排跑两个构建）。

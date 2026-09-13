@@ -8,6 +8,7 @@ import li.gkd.app.data.settings.SettingsStore
 import li.gkd.app.priv.PrivilegeOwnerLifecycle
 import li.gkd.app.util.AppListString
 import li.gkd.app.util.FolderUtils
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.ToastUtils.toast
 import li.gkd.app.util.launchLogged
 
@@ -64,6 +65,10 @@ object AppStore {
         }
 
     fun checkAppBlockMatch(appId: String): Boolean {
+        // 受保护应用（支付宝/微信/银行类等资金交易应用）: 硬禁止, 与任何设置和规则来源无关
+        if (ProtectedApps.isProtected(appId)) {
+            return true
+        }
         if (blockMatchAppListFlow.value.contains(appId)) {
             return true
         }

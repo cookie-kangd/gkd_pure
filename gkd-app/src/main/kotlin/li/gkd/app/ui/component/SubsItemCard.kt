@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import li.gkd.app.META
 import li.gkd.app.data.RawSubscription
 import li.gkd.db.SubsItem
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.formatTimeAgo
 import li.gkd.app.util.throttle
 
@@ -147,6 +149,16 @@ fun SubsItemCard(
                             LocalContentColor.current
                         }
                     )
+                    val protectedCount = remember(subscription) {
+                        ProtectedApps.filterProtected(subscription.apps.map { it.id }).size
+                    }
+                    if (protectedCount > 0) {
+                        Text(
+                            text = "安全审查: $protectedCount 个受保护应用(支付宝/微信/银行类)的规则已被强制拦截",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {

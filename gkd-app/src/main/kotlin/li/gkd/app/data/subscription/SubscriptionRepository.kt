@@ -1,5 +1,6 @@
 package li.gkd.app.data.subscription
 
+import com.hjq.toast.Toaster
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CancellationException
@@ -17,6 +18,7 @@ import li.gkd.db.Db
 import li.gkd.app.util.LogUtils
 import li.gkd.app.util.MutexState
 import li.gkd.app.util.NetworkUtils
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.client
 import li.gkd.app.util.distinctByIfAny
 import li.gkd.app.util.filterIfNotAll
@@ -145,6 +147,7 @@ object SubscriptionRepository {
         }
         updateMutex.withStateLock {
             val currentItem = Db.subsItemDao.queryAll().find { it.id == subscription.id }
+            auditProtected(subscription)
             try {
                 saveLocked(
                     subscription = subscription,
@@ -288,6 +291,7 @@ object SubscriptionRepository {
                 )
                 return@tryWithStateLock
             }
+            auditProtected(subscription)
             val newItem = oldItem?.copy(updateUrl = url) ?: SubsItem(
                 id = subscription.id,
                 updateUrl = url,
@@ -406,6 +410,18 @@ object SubscriptionRepository {
             updateErrors = snapshot.updateErrors.toMutableMap().apply { remove(id) },
         ))
         LogUtils.d("更新订阅文件:id=$id,name=${nextSubscription.name}")
+    }
+
+    /** 安全审查: 提示订阅中包含的受保护应用规则（引擎层已强制拦截） */
+    private fun auditProtected(subscription: RawSubscription) {
+        val hits = ProtectedApps.filterProtected(subscription.apps.map { it.id })
+        if (hits.isEmpty()) return
+        LogUtils.d(
+            "安全审查: 订阅${subscription.name}包含受保护应用规则: $hits (已强制拦截)",
+        )
+        Toaster.show(
+            "安全审查: 订阅「${subscription.name}」包含 ${hits.size} 个受保护应用(支付宝/微信/银行类)的规则, 已强制拦截",
+        )
     }
 
     private fun prepareSubscription(
