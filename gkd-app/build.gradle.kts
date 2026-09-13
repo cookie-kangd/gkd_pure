@@ -26,9 +26,10 @@ plugins {
 android {
     namespace = "li.gkd.app"
     defaultConfig {
-        applicationId = "li.songe.gkd"
-        versionCode = 8
-        versionName = "0.1.7"
+        // 独立包名, 与上游 GKD (li.songe.gkd) 区分, 避免应用商店按包名匹配出"上游有更新"
+        applicationId = "io.github.cookiekangd.gkdpure"
+        versionCode = 9
+        versionName = "0.1.8"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
