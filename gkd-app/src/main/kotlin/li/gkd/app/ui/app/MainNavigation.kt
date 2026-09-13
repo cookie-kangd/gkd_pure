@@ -20,6 +20,8 @@ import li.gkd.app.feature.log.ActivityLogPage
 import li.gkd.app.feature.log.ActivityLogRoute
 import li.gkd.app.feature.settings.AdvancedPage
 import li.gkd.app.feature.settings.AdvancedPageRoute
+import li.gkd.app.feature.settings.ProtectedAppsListPage
+import li.gkd.app.feature.settings.ProtectedAppsListRoute
 import li.gkd.app.ui.AppConfigPage
 import li.gkd.app.ui.AppConfigRoute
 import li.gkd.app.ui.BlockA11yAppListPage
@@ -64,6 +66,7 @@ private val mainRouteEntryProvider = entryProvider {
     entry<AboutRoute> { AboutPage() }
     entry<BlockA11yAppListRoute> { BlockA11yAppListPage() }
     entry<AdvancedPageRoute> { AdvancedPage() }
+    entry<ProtectedAppsListRoute> { ProtectedAppsListPage() }
     entry<PrivilegeServiceRoute> { PrivilegeServicePage() }
     entry<SnapshotPageRoute> { SnapshotPage() }
     entry<SnapshotSettingsRoute> { SnapshotSettingsPage() }

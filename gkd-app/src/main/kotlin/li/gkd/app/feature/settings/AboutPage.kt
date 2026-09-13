@@ -70,10 +70,10 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.8"
+private const val LAST_RELEASE_VERSION = "0.1.9"
 private val LAST_RELEASE_NOTES = listOf(
-    "包名更换: li.songe.gkd → io.github.cookiekangd.gkdpure, 商店不再误报官方更新",
-    "升级提醒: 包名变更后无法覆盖升级, 需卸载旧版重装, 订阅需重新导入",
+    "受保护应用: 支付宝/微信/云闪付/数字人民币及银行类应用内不执行任何规则",
+    "订阅导入审查: 含受保护应用规则的订阅会明确提示并强制拦截",
 ).joinToString("\n") { "· $it" }
 
 @Composable

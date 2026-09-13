@@ -27,7 +27,7 @@
 
 | 设备 | 架构 | 文件 |
 |---|---|---|
-| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.9.apk` |
+| 手机 / 平板 / 模拟器 | arm64-v8a、x86_64（同一个包） | `gkd_pure-v0.1.10.apk` |
 
 国内直连 GitHub 下载慢？把 APK 链接前面拼上加速镜像前缀即可：
 
@@ -38,7 +38,7 @@
 | Cloudflare (v4/v6) | `https://v6.gh-proxy.org/` |
 | Fastly (v4) | `https://cdn.gh-proxy.org/` |
 
-示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.9/gkd_pure-v0.1.9.apk`
+示例：`https://v4.gh-proxy.org/https://github.com/cookie-kangd/gkd_pure/releases/download/v0.1.10/gkd_pure-v0.1.10.apk`
 
 - **系统要求**：Android 8.0（API 26）及以上
 - **应用内更新**：设置 → 关于 → 检查更新（已内置镜像加速 + 直链兜底，见下文）
@@ -66,6 +66,7 @@
 **受保护应用（v0.1.9 起）**：支付宝、微信、云闪付、数字人民币及国内银行类应用（包名含 `bank` 等特征）
 属于资金交易类应用，本版在规则引擎层对其**硬禁止**——无论订阅规则（外部引入）或本地规则怎么写，
 都不会在这些应用内匹配、轮询或点击；导入包含这类规则的订阅时会明确提示拦截。
+完整名单可在 设置 → 其他 → 安全审查列表 查看（v0.1.10 起），规则列表中受保护应用的开关会显示为关闭。
 该名单与任何设置无关，无法绕过。
 
 **权限清单**（每一项都是功能必需，没有多余权限）：
@@ -104,7 +105,7 @@
 | 首页 | 有「了解 GKD」入口 | 已移除 |
 | 数据备份通道 | `allowBackup=true` | 已关闭（私有数据不可被备份提取） |
 
-**v0.1.9 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。自 v0.1.8 起使用独立包名不再与官方商店互相干扰；v0.1.9 起内置支付宝/微信/银行类等资金交易应用的强制保护名单。
+**v0.1.10 具体内容**见 [CHANGELOG.md](./CHANGELOG.md)。自 v0.1.8 起使用独立包名不再与官方商店互相干扰；v0.1.9 起内置支付宝/微信/银行类等资金交易应用的强制保护名单；v0.1.10 起提供安全审查可视化（规则弹窗安全审查栏目 + 设置-其他安全审查列表）。
 
 ---
 
@@ -233,7 +234,7 @@ GKD 规则匹配的是**目标应用**的包名（如微信、抖音），与本
 1. 改 `gkd-app/build.gradle.kts` 里的 `versionCode`（+1）与 `versionName`
 2. 在 `CHANGELOG.md` 补一段 `## v<新版本>`（内容会进 Release 说明和更新弹窗）
 3. 同步 `AboutPage.kt` 的 `LAST_RELEASE_VERSION` 为上一个版本号（漏改 CI 会直接失败）
-4. 推送 `main`，再推 tag：`git tag v0.1.9 && git push origin v0.1.9`
+4. 推送 `main`，再推 tag：`git tag v0.1.10 && git push origin v0.1.10`
 
 `Build-Release.yml` 会自动构建、生成 `index.json`、创建 Release；
 `Build-Apk.yml` 只在**功能分支**上跑编译冒烟（已刻意排除 `main`，避免同一次发版并排跑两个构建）。

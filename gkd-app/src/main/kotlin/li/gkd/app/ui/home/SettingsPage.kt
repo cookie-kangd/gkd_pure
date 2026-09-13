@@ -59,6 +59,7 @@ import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.store.AppStore.actionCountFlow
 import li.gkd.app.feature.settings.AboutRoute
 import li.gkd.app.feature.settings.AdvancedPageRoute
+import li.gkd.app.feature.settings.ProtectedAppsListRoute
 import li.gkd.app.ui.BlockA11yAppListRoute
 import li.gkd.app.ui.PrivilegeServiceRoute
 import li.gkd.app.ui.component.CustomOutlinedTextField
@@ -528,6 +529,9 @@ fun useSettingsPage(): ScaffoldExt {
                 color = MaterialTheme.colorScheme.primary,
             )
 
+            SettingItem(title = "安全审查列表", subtitle = "内置资金交易类应用保护名单", onClick = {
+                mainVm.navigatePage(ProtectedAppsListRoute)
+            })
             SettingItem(title = "高级设置", onClick = {
                 mainVm.navigatePage(AdvancedPageRoute)
             })

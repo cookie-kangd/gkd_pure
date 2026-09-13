@@ -3,6 +3,7 @@ package li.gkd.app.ui.component
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +42,7 @@ import li.gkd.app.domain.rule.RuleGroupPolicy
 import li.gkd.app.ui.icon.ResetSettings
 import li.gkd.app.ui.share.noRippleClickable
 import li.gkd.app.data.appinfo.AppInfoRepository
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.throttle
 import java.util.Objects
 import li.gkd.db.SubsCategoryConfig
@@ -96,6 +98,7 @@ fun RuleGroupCard(
         ExcludeData.parse(subsConfig?.exclude)
     }
     val systemApps by AppInfoRepository.systemAppsFlow.collectAsStateWithLifecycle()
+    val protectedApp = appId != null && ProtectedApps.isProtected(appId)
     val checked = if (inGlobalAppPage) {
         RuleGroupPolicy.getGlobalGroupChecked(
             subs,
@@ -213,8 +216,8 @@ fun RuleGroupCard(
                         PerfSwitch(
                             key = Objects.hash(subs.id, appId, group.key),
                             modifier = switchModifier.minimumInteractiveComponentSize(),
-                            checked = checked,
-                            enabled = switchEnabled,
+                            checked = if (protectedApp) false else checked,
+                            enabled = switchEnabled && !protectedApp,
                             onCheckedChange = onCheckedChange,
                             thumbContent = if (canRest) ({
                                 PerfIcon(
@@ -228,20 +231,34 @@ fun RuleGroupCard(
                     }
                 }
             }
-            if (hasExcludeActivity) {
-                PerfIcon(
-                    imageVector = PerfIcon.Block,
-                    contentDescription = "此规则已排除部分页面",
-                    tint = if (isSelectedMode) {
-                        LocalContentColor.current.copy(alpha = 0.5f)
-                    } else {
-                        LocalContentColor.current
-                    },
+            if (hasExcludeActivity || protectedApp) {
+                Row(
                     modifier = Modifier
-                        .padding(top = 4.dp, end = 4.dp)
-                        .align(Alignment.TopEnd)
-                        .size(8.dp)
-                )
+                        .padding(top = 2.dp, end = 4.dp)
+                        .align(Alignment.TopEnd),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    if (protectedApp) {
+                        Text(
+                            text = "受保护",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    }
+                    if (hasExcludeActivity) {
+                        PerfIcon(
+                            imageVector = PerfIcon.Block,
+                            contentDescription = "此规则已排除部分页面",
+                            tint = if (isSelectedMode) {
+                                LocalContentColor.current.copy(alpha = 0.5f)
+                            } else {
+                                LocalContentColor.current
+                            },
+                            modifier = Modifier.size(8.dp)
+                        )
+                    }
+                }
             }
         }
     }

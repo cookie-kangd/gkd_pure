@@ -19,6 +19,7 @@ import li.gkd.db.SubsAppConfig
 import li.gkd.app.data.AppInfo
 import li.gkd.app.data.RawSubscription
 import li.gkd.app.store.AppStore.blockMatchAppListFlow
+import li.gkd.app.util.ProtectedApps
 import li.gkd.app.ui.style.appItemPadding
 
 
@@ -32,6 +33,7 @@ fun SubsAppCard(
     onClick: (() -> Unit),
     onValueChange: ((Boolean) -> Unit),
 ) {
+    val protectedApp = ProtectedApps.isProtected(rawApp.id)
     Row(
         modifier = Modifier
             .clickable(onClick = onClick)
@@ -47,7 +49,9 @@ fun SubsAppCard(
         ) {
             AppNameText(appInfo = appInfo, fallbackName = rawApp.name)
             if (rawApp.groups.isNotEmpty()) {
-                val enableDesc = when (enableSize) {
+                val enableDesc = if (protectedApp) {
+                    "${rawApp.groups.size}组规则·受保护已停用"
+                } else when (enableSize) {
                     null -> "${rawApp.groups.size}组规则"
                     0 -> "${rawApp.groups.size}组规则/${rawApp.groups.size}关闭"
                     rawApp.groups.size -> "${rawApp.groups.size}组规则"
@@ -64,6 +68,15 @@ fun SubsAppCard(
                 )
             }
         }
+        if (protectedApp) {
+            PerfIcon(
+                modifier = Modifier
+                    .padding(2.dp)
+                    .size(20.dp),
+                imageVector = PerfIcon.Block,
+                tint = MaterialTheme.colorScheme.error,
+            )
+        }
         if (blockMatchAppListFlow.collectAsStateWithLifecycle().value.contains(rawApp.id)) {
             PerfIcon(
                 modifier = Modifier
@@ -75,13 +88,15 @@ fun SubsAppCard(
         }
         PerfSwitch(
             key = rawApp.id,
-            checked = if (switchEnabled) {
+            checked = if (protectedApp) {
+                false
+            } else if (switchEnabled) {
                 appConfig?.enable ?: (appInfo != null)
             } else {
                 true
             },
             onCheckedChange = onValueChange,
-            enabled = switchEnabled,
+            enabled = switchEnabled && !protectedApp,
         )
     }
 }
