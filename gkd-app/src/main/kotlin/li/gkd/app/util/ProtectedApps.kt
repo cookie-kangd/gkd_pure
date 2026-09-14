@@ -16,18 +16,23 @@ object ProtectedApps {
         "com.tencent.mm" to "微信（含支付与小程序）",
         "com.unionpay" to "云闪付",
         "com.apps.dcep" to "数字人民币",
+        "com.icbc" to "工商银行",
+        "cmb.pb" to "招商银行",
+        "com.cib.cibmb" to "兴业银行",
     )
     private val exactApps: Set<String> get() = exactAppNames.keys
 
     // 包名关键词（大小写不敏感） → 展示说明：银行类包名繁杂，用关键词兜底。保持保守，避免误伤非金融应用
     val keywordDescs = listOf(
-        "bank" to "绝大多数银行应用（工/建/农/中/交/招/邮储/浦发/民生/兴业/华夏等）",
+        "bank" to "绝大多数银行应用（建/农/中/交/邮储/浦发/民生/中信/光大/广发/平安等）",
         "unionpay" to "银联系应用",
         "alipay" to "支付宝系应用",
         "chinamworld" to "建设银行/中国银行部分版本",
         "bocmbci" to "中国银行",
-        "cmbchina" to "招商银行",
+        "cmbchina" to "招商银行（掌上生活）",
         "cgbchina" to "广发银行",
+        "icbc" to "工商银行系应用",
+        "cibmb" to "兴业银行系应用",
         "dcep" to "数字人民币",
     )
     private val keywords: List<String> get() = keywordDescs.map { it.first }

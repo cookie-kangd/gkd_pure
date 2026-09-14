@@ -70,10 +70,11 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.9"
+private const val LAST_RELEASE_VERSION = "0.1.10"
 private val LAST_RELEASE_NOTES = listOf(
-    "受保护应用: 支付宝/微信/云闪付/数字人民币及银行类应用内不执行任何规则",
-    "订阅导入审查: 含受保护应用规则的订阅会明确提示并强制拦截",
+    "安全审查可视化: 规则详情弹窗新增安全审查栏目, 真实显示该规则命中的受保护应用",
+    "设置-其他新增安全审查列表: 展示全部内置受保护应用名单(图标+应用名+包名)",
+    "规则列表中受保护应用的开关强制显示为关闭且不可打开",
 ).joinToString("\n") { "· $it" }
 
 @Composable
