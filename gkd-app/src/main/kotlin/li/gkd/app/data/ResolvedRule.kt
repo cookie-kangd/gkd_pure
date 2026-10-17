@@ -127,6 +127,10 @@ sealed class ResolvedRule(
         return System.currentTimeMillis() < matchChangedTime.value + matchDelay + forcedTime
     }
 
+    fun remainingCooldown(now: Long = System.currentTimeMillis()): Long {
+        return (actionTriggerTime.value + actionCd - now).coerceAtLeast(0L)
+    }
+
     private var actionTriggerTime = atomic(0L)
     fun trigger() {
         val t = System.currentTimeMillis()

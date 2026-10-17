@@ -7,6 +7,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.getAndUpdate
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -39,6 +40,12 @@ private val eventDispatcher = Executors.newSingleThreadExecutor().asCoroutineDis
 private val queryDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 private val actionDispatcher = Executors.newSingleThreadExecutor().asCoroutineDispatcher()
 
+private const val MAX_PENDING_EVENTS = 64
+private const val MAX_QUERY_EVENTS = 32
+private const val RECENT_EVENT_WINDOW_MILLIS = 2_000L
+private const val ACTIVE_APP_WINDOW_MILLIS = 10_000L
+private const val MAX_COOLDOWN_POLL_DELAY_MILLIS = 5_000L
+
 class A11yRuleEngine(private val service: A11yCommonImpl) {
     private val a11yContext = A11yContext(getRoot = { safeActiveWindow })
     private val effective get() = A11yRuntime.isEffective(service)
@@ -56,9 +63,12 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         startQueryJob()
     }
 
+    @Synchronized
     fun onScreenOff() {
         // 熄屏零操作: 立即中断正在进行的节点遍历匹配, 避免熄屏瞬间还在跑的一轮
         // queryAction 继续遍历节点树甚至执行点击。
+        futureStartJob?.cancel()
+        futureStartJob = null
         a11yContext.interruptKey++
     }
 
@@ -82,10 +92,14 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
     private var latestStateEvent: A11yEvent? = null
     private var lastContentEventTime = 0L
     private var lastEventTime = 0L
+    @Volatile
+    private var lastUsefulEventWallTime = 0L
+    private var futureStartJob: Job? = null
     private val eventDeque = ArrayDeque<A11yEvent>()
     fun onA11yEvent(event: AccessibilityEvent?) {
         if (!effective) return
         if (!event.isUseful()) return
+        lastUsefulEventWallTime = System.currentTimeMillis()
         // 拒绝副屏无障碍事件
         if (AndroidTarget.TIRAMISU && event.displayId != Display.DEFAULT_DISPLAY) return
         // ⚠️ 熄屏零操作: 屏幕关闭时丢弃全部无障碍事件, 不做任何规则匹配/点击。
@@ -131,7 +145,20 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         if (event.eventType == STATE_CHANGED) {
             latestStateEvent = a11yEvent
         }
-        synchronized(eventDeque) { eventDeque.addLast(a11yEvent) }
+        synchronized(eventDeque) {
+            // Accessibility events can arrive faster than the single-threaded event
+            // dispatcher. Keep only recent events; content events are the first to
+            // discard because state changes carry foreground-app information.
+            if (eventDeque.size >= MAX_PENDING_EVENTS) {
+                val contentIndex = eventDeque.indexOfFirst { it.type == CONTENT_CHANGED }
+                if (contentIndex >= 0) {
+                    eventDeque.removeAt(contentIndex)
+                } else {
+                    eventDeque.removeFirst()
+                }
+            }
+            eventDeque.addLast(a11yEvent)
+        }
         scope.launch(eventDispatcher) { consumeEvent(a11yEvent) }
     }
 
@@ -177,7 +204,13 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         if (evAppId != rightAppId || activityRule.skipConsumeEvent || !storeFlow.value.enableMatch) {
             return
         }
-        synchronized(queryEvents) { queryEvents.addAll(consumedEvents) }
+        synchronized(queryEvents) {
+            queryEvents.addAll(consumedEvents)
+            val overflow = queryEvents.size - MAX_QUERY_EVENTS
+            if (overflow > 0) {
+                queryEvents.subList(0, overflow).clear()
+            }
+        }
         a11yContext.interruptKey++
         startQueryJob(byEvent = latestEvent)
     }
@@ -231,6 +264,10 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         if (!storeFlow.value.enableMatch) return
         if (activityRuleFlow.value.currentRules.isEmpty()) return
         if (querying) return
+        // Do not cancel a pending follow-up while another query is still running.
+        // An event that arrives in that window must not consume the only retry job.
+        futureStartJob?.cancel()
+        futureStartJob = null
         // 无障碍从零启动时获取 safeActiveWindow 非常耗时
         if (byEvent == null && service.justStarted && !hasOthersService) return checkFutureStartJob()
         // ⚠️ 必须在进入 @Synchronized 作用域时就置位，不能等协程真正开始跑再置位：
@@ -259,22 +296,67 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
         }
     }
 
+    @Synchronized
     private fun checkFutureStartJob() {
+        futureStartJob?.cancel()
+        futureStartJob = null
         val t = System.currentTimeMillis()
         if (t - lastTriggerTime < 3000L || t - appChangeTime < 3000L) {
-            scope.launch(actionDispatcher) {
-                delay(300.milliseconds)
-                startQueryJob()
-            }
-        } else if (isInteractive && activityRuleFlow.value.hasFeatureAction) {
+            scheduleFutureStartJob(300L, byForced = false)
+        } else if (isInteractive) {
             // ⚠️ 必须门控 isInteractive: 该分支是无限轮询(等目标节点出现), 灭屏后屏幕上无任何
             // 可跳过的内容, 若继续每 300ms 做全树规则匹配就是纯耗电; 亮屏时
             // SCREEN_ON 广播 -> onScreenForcedActive -> startQueryJob -> checkFutureStartJob
             // 会自然恢复轮询。
-            scope.launch(actionDispatcher) {
-                delay(300.milliseconds)
-                startQueryJob(byForced = true)
+            nextForcedPollDelay()?.let { delayMillis ->
+                scheduleFutureStartJob(delayMillis, byForced = true)
             }
+        }
+    }
+
+    @Synchronized
+    private fun scheduleFutureStartJob(delayMillis: Long, byForced: Boolean) {
+        futureStartJob?.cancel()
+        futureStartJob = scope.launch(actionDispatcher) {
+            delay(delayMillis.milliseconds)
+            synchronized(this@A11yRuleEngine) {
+                futureStartJob = null
+            }
+            startQueryJob(byForced = byForced)
+        }
+    }
+
+    /**
+     * Avoid full-tree scans every 300ms when a forced rule is only waiting for its
+     * action cooldown, or when the current app has been idle for a while. A new
+     * accessibility event still triggers an immediate query.
+     */
+    private fun nextForcedPollDelay(): Long? {
+        val activityRule = activityRuleFlow.value
+        if (!activityRule.hasFeatureAction) return null
+
+        val now = System.currentTimeMillis()
+        val forcedRules = activityRule.currentRules.filter { it.checkForced() }
+        if (forcedRules.none { it.status == RuleStatus.StatusOk }) {
+            val cooldownRemaining = forcedRules.mapNotNull { rule ->
+                if (rule.status == RuleStatus.Status5) rule.remainingCooldown(now) else null
+            }.minOrNull()
+            if (cooldownRemaining != null && cooldownRemaining > 0L) {
+                return cooldownRemaining
+                    .coerceAtMost(MAX_COOLDOWN_POLL_DELAY_MILLIS)
+                    .coerceAtLeast(300L)
+            }
+        }
+
+        val sinceLastEvent = if (lastUsefulEventWallTime > 0L) {
+            now - lastUsefulEventWallTime
+        } else {
+            Long.MAX_VALUE
+        }
+        return when {
+            sinceLastEvent < RECENT_EVENT_WINDOW_MILLIS -> 300L
+            now - appChangeTime < ACTIVE_APP_WINDOW_MILLIS -> 500L
+            else -> 1_000L
         }
     }
 
@@ -356,6 +438,8 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
                 null
             }
         }
+        var cachedActiveWindow: AccessibilityNodeInfo? = null
+        var activeWindowResolved = false
         var lastNodeUsed = false
         if (!a11yContext.clearOldAppNodeCache()) {
             if (byEvent != null) { // 此为多数情况
@@ -384,7 +468,16 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
                     lastNode = null
                 }
             }
-            val nodeVal = (lastNode ?: getTimeoutActiveWindow()) ?: continue
+            val nodeVal = lastNode ?: if (activeWindowResolved) {
+                cachedActiveWindow
+            } else {
+                // safeActiveWindow can block for hundreds of ms. Resolve it once per
+                // query pass instead of once per rule when the event has no source node.
+                getTimeoutActiveWindow().also {
+                    cachedActiveWindow = it
+                    activeWindowResolved = true
+                }
+            } ?: continue
             val rightAppId = nodeVal.packageName?.toString() ?: break
             // 受保护应用硬禁止: 兜底校验当前窗口包名, 无论规则来源如何配置
             if (ProtectedApps.isProtected(rightAppId)) return

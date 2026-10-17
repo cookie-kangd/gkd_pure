@@ -1,5 +1,6 @@
 package li.gkd.app.ui.home
 
+import android.os.PowerManager
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,6 +59,8 @@ fun GlassBottomBar(
     onTabClick: (BottomNavItem) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val powerSave = context.getSystemService(PowerManager::class.java).isPowerSaveMode
     val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     // 毛玻璃 tint：浅色偏白、深色偏黑，blur 完成后叠加这层色彩保证两种模式下都可读
     val glassTint = if (isDark) {
@@ -64,11 +68,13 @@ fun GlassBottomBar(
     } else {
         Color(0xFFF6F7FB).copy(alpha = 0.60f)
     }
-    val glassStyle = HazeStyle(
-        tints = listOf(HazeTint(glassTint)),
-        blurRadius = 24.dp,
-        noiseFactor = 0.06f,
-    )
+    val glassStyle = remember(isDark) {
+        HazeStyle(
+            tints = listOf(HazeTint(glassTint)),
+            blurRadius = 20.dp,
+            noiseFactor = 0.04f,
+        )
+    }
     val dockShape = RoundedCornerShape(percent = 50)
     // 描边要能明确看出是「一块玻璃」：深色模式用偏白的亮边勾轮廓，浅色模式用高亮白边靠阴影拉开层次
     val borderColor = if (isDark) Color.White.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.90f)
@@ -94,7 +100,14 @@ fun GlassBottomBar(
                 .fillMaxWidth()
                 .shadow(elevation = if (isDark) 10.dp else 16.dp, shape = dockShape, clip = false)
                 .clip(dockShape)
-                .hazeEffect(hazeState, style = glassStyle)
+                .then(
+                    if (powerSave) {
+                        // 省电模式下跳过实时模糊，保留半透明玻璃底色，避免持续 GPU 采样。
+                        Modifier.background(glassTint, dockShape)
+                    } else {
+                        Modifier.hazeEffect(hazeState, style = glassStyle)
+                    }
+                )
                 .background(brush = glassHighlight, shape = dockShape)
                 .border(BorderStroke(1.6.dp, borderColor), dockShape)
                 .padding(vertical = 4.dp),

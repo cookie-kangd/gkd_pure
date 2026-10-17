@@ -38,6 +38,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -178,6 +179,7 @@ class EventService : OverlayWindowService(positionKey = "event") {
             lifecycleScope.launch {
                 try {
                     while (isActive) {
+                        tempEventListFlow.first { it.isNotEmpty() }
                         delay(1000.milliseconds)
                         flushEventLogs()
                     }

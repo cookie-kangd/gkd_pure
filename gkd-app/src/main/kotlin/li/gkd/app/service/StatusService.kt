@@ -131,7 +131,7 @@ class StatusService : LifecycleHookService() {
                     actionCountFlow.debounce(1000L.milliseconds),
                 ) {
                     statusTriple()
-                }.collect {
+                }.distinctUntilChanged().collect {
                     NotificationCatalog.status(
                         title = it.first,
                         text = it.second,
