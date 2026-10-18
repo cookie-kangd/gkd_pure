@@ -82,8 +82,6 @@ class AppListVm(mainVm: MainViewModel) : BaseViewModel() {
     )
     private val showSearchBarFlow = MutableStateFlow(false)
 
-    val appInfosFlow = appFilter.appListFlow
-
     private val controls = combine(
         showSearchBarFlow,
         editWhiteListModeFlow,

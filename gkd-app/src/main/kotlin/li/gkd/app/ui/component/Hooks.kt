@@ -10,6 +10,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.Stable
@@ -79,6 +80,38 @@ private fun TopAppBarScrollBehavior.resetScroll() {
     state.contentOffset = 0f
 }
 
+private class ListChangeMarker<T>(
+    var list: List<T>,
+    var leadingItemKey: Any?,
+)
+
+/**
+ * Sync from gkd-kit/gkd ab837b3e.
+ *
+ * Compares list *content* rather than list identity. `ResetOnChange(list)`
+ * restarts on every new list instance, so unrelated re-emissions with equal
+ * content (search reset, permission refresh, filter toggle) also scroll to top.
+ */
+@Composable
+fun <T> GkResetOnItemKeysChange(
+    list: List<T>,
+    key: (T) -> Any,
+    leadingItemKey: Any? = null,
+    onChange: () -> Unit,
+) {
+    val previous = remember { ListChangeMarker(list, leadingItemKey) }
+    SideEffect {
+        val changed = previous.leadingItemKey != leadingItemKey ||
+            (previous.list !== list && (
+                previous.list.size != list.size ||
+                    list.indices.any { index -> key(previous.list[index]) != key(list[index]) }
+                ))
+        previous.list = list
+        previous.leadingItemKey = leadingItemKey
+        if (changed) onChange()
+    }
+}
+
 @Stable
 class ListScrollState(
     val scrollBehavior: TopAppBarScrollBehavior,
@@ -86,6 +119,13 @@ class ListScrollState(
     private val coroutineScope: CoroutineScope,
 ) {
     private var resetJob: Job? = null
+
+    private fun requestScrollReset() {
+        resetJob?.cancel()
+        resetJob = null
+        scrollBehavior.resetScroll()
+        listState.requestScrollToItem(0)
+    }
 
     private suspend fun performScrollReset() {
         scrollBehavior.resetScroll()
@@ -111,6 +151,18 @@ class ListScrollState(
             snapshotFlow { currentKeys.value }
                 .drop(1)
                 .collect { resetScroll() }
+        }
+    }
+
+    @Composable
+    fun <T> ResetOnListChange(
+        list: List<T>,
+        key: (T) -> Any,
+        leadingItemKey: Any? = null,
+        enabled: Boolean = true,
+    ) {
+        GkResetOnItemKeysChange(list, key, leadingItemKey) {
+            if (enabled) requestScrollReset()
         }
     }
 }
