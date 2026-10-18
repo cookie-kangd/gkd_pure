@@ -70,11 +70,14 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.11"
+private const val LAST_RELEASE_VERSION = "0.1.12"
 private val LAST_RELEASE_NOTES = listOf(
-    "受保护应用名单补漏: 新增招商银行 cmb.pb、工商银行 com.icbc、兴业银行 com.cib.cibmb",
-    "新增 icbc/cibmb 关键词兜底银行类应用变体",
-    "建议 v0.1.9/v0.1.10 用户升级",
+    "同步上游 616637f: 启动器内容变化时触发订阅更新",
+    "省电: 强制轮询冷却期退避、应用空闲逐步降低轮询频率",
+    "省电: 事件日志服务空闲休眠, 状态通知仅在内容变化时刷新",
+    "内存: 限制待处理无障碍事件队列长度",
+    "性能: 一次查询只获取一次活动窗口",
+    "GPU: 系统省电模式下底栏跳过实时模糊",
 ).joinToString("\n") { "· $it" }
 
 @Composable

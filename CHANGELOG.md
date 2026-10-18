@@ -4,6 +4,12 @@
 > CI 会用 `tools/gen_release_index.py` 按 tag 抓取对应的 `## <tag>` 段落，
 > 写进 Release 的 `index.json`。**每次发版前必须补上对应段落，标题与 tag 完全一致（含 `v`）。**
 
+## v0.1.13
+
+- 同步上游 gkd-kit/gkd 677c1388：特权进程截图调用隐藏 API 失败时，改为通过 `ServiceSpecificException` 把原始异常传回主进程，避免 `NoSuchMethodError` 等 `LinkageError` 逃逸导致特权进程崩溃
+- 同步上游 gkd-kit/gkd ab837b3e：应用列表改为按「列表内容变化」重置滚动位置，权限刷新、筛选切换、清空搜索等无关重发不再把列表反复弹回顶部
+- 上游后续版本（v1.13.0-beta-2）包含大量快照流程重做、持久化触发统计、特权服务重做、Windows 桌面预览版等改动，且已迁移为 Compose Multiplatform 多模块结构；本次仅挑选可独立移植、与现有结构兼容的修复，未跟随架构迁移
+
 ## v0.1.12
 
 - 同步上游 gkd-kit/gkd 616637f：启动器内容变化时也会触发订阅自动更新，不再只依赖窗口切换事件

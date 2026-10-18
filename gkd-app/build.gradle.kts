@@ -28,8 +28,8 @@ android {
     defaultConfig {
         // 独立包名, 与上游 GKD (li.songe.gkd) 区分, 避免应用商店按包名匹配出"上游有更新"
         applicationId = "io.github.cookiekangd.gkdpure"
-        versionCode = 13
-        versionName = "0.1.12"
+        versionCode = 14
+        versionName = "0.1.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
