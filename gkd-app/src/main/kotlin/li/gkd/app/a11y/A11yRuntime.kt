@@ -76,7 +76,8 @@ object A11yRuntime {
 
     fun performActionBack(): Boolean {
         val result = privilegeContextFlow.value?.keyevent(KeyEvent.KEYCODE_BACK)
-        if (result == true) return true
+        // 定向同步上游 6f88ff32a1: 特权服务明确返回失败时不再回落到全局返回键
+        if (result != null) return result
         return A11yService.instance?.performGlobalAction(AccessibilityService.GLOBAL_ACTION_BACK) == true
     }
 

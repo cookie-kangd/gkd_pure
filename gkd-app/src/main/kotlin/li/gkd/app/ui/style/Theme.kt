@@ -18,18 +18,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import li.gkd.app.app
 import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.ui.share.LocalDarkTheme
@@ -39,25 +34,20 @@ import li.gkd.app.util.AndroidTarget
 private val LightColorScheme = lightColorScheme()
 private val DarkColorScheme = darkColorScheme()
 
-private fun createAppearanceFlow(scope: CoroutineScope) =
+private fun createAppearanceFlow() =
     storeFlow
         .map { it.enableDarkTheme to it.enableDynamicColor }
         .distinctUntilChanged()
-        .debounce(300)
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            storeFlow.value.let { it.enableDarkTheme to it.enableDynamicColor },
-        )
 
 @Composable
 fun AppTheme(
     invertedTheme: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val appearanceFlow = remember(scope) { createAppearanceFlow(scope) }
-    val (enableDarkTheme, enableDynamicColor) = appearanceFlow.collectAsStateWithLifecycle().value
+    val appearanceFlow = remember { createAppearanceFlow() }
+    val (enableDarkTheme, enableDynamicColor) = appearanceFlow.collectAsStateWithLifecycle(
+        initialValue = storeFlow.value.let { it.enableDarkTheme to it.enableDynamicColor },
+    ).value
     val systemInDarkTheme = isSystemInDarkTheme()
     val darkTheme = (enableDarkTheme ?: systemInDarkTheme).let {
         if (invertedTheme) !it else it

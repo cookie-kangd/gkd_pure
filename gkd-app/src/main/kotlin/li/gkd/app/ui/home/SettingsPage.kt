@@ -47,6 +47,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import li.gkd.app.MainActivity
 import li.gkd.app.R
 import li.gkd.app.data.subscription.SubscriptionState
@@ -105,6 +107,10 @@ fun useSettingsPage(): ScaffoldExt {
     val privilegeAvailable = privilegeContextFlow.collectAsStateWithLifecycle().value != null
     val store by storeFlow.collectAsStateWithLifecycle()
     val actionScope = vm.scope
+    var selectedTheme by remember(store.enableDarkTheme) {
+        mutableStateOf(store.enableDarkTheme)
+    }
+    var themeUpdateJob by remember { mutableStateOf<Job?>(null) }
     var showToastInputDlg by rememberSaveable { mutableStateOf(false) }
     var showNotifTextInputDlg by rememberSaveable { mutableStateOf(false) }
     var showA11yBlockDlg by rememberSaveable { mutableStateOf(false) }
@@ -506,9 +512,15 @@ fun useSettingsPage(): ScaffoldExt {
 
             TextMenu(
                 title = "深色模式",
-                option = DarkThemeOption.objects.findOption(store.enableDarkTheme),
-                onOptionChange = {
-                    vm.setDarkTheme(it.value)
+                option = DarkThemeOption.objects.findOption(selectedTheme),
+                onOptionChange = { option ->
+                    selectedTheme = option.value
+                    themeUpdateJob?.cancel()
+                    themeUpdateJob = actionScope.launch {
+                        // 定向同步上游 0c679f691b: 延迟只用于等菜单关闭, 主题本身立即生效
+                        delay(300.milliseconds)
+                        vm.setDarkTheme(option.value)
+                    }
                 }
             )
 

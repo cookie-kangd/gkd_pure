@@ -70,7 +70,7 @@ data object AboutRoute : NavKey
  * 当前版本由 META.versionName 动态读取，无需维护。
  * CI 的 tools/gen_release_index.py 会校验这里的版本号等于上一个 git tag，防止忘记更新。
  */
-private const val LAST_RELEASE_VERSION = "0.1.13"
+private const val LAST_RELEASE_VERSION = "0.1.14"
 private val LAST_RELEASE_NOTES = listOf(
     "同步上游 616637f: 启动器内容变化时触发订阅更新",
     "省电: 强制轮询冷却期退避、应用空闲逐步降低轮询频率",
