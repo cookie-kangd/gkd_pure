@@ -19,6 +19,7 @@ import li.gkd.db.SubsAppConfig
 import li.gkd.app.data.AppInfo
 import li.gkd.app.data.RawSubscription
 import li.gkd.app.store.AppStore.blockMatchAppListFlow
+import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.ProtectedApps
 import li.gkd.app.ui.style.appItemPadding
 
@@ -33,7 +34,8 @@ fun SubsAppCard(
     onClick: (() -> Unit),
     onValueChange: ((Boolean) -> Unit),
 ) {
-    val protectedApp = ProtectedApps.isProtected(rawApp.id)
+    val securityReviewEnabled = storeFlow.collectAsStateWithLifecycle().value.enableSecurityReview
+    val protectedApp = ProtectedApps.shouldProtect(rawApp.id, securityReviewEnabled)
     Row(
         modifier = Modifier
             .clickable(onClick = onClick)

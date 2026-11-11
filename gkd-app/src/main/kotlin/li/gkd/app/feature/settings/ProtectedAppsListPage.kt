@@ -32,6 +32,7 @@ import li.gkd.app.ui.component.PerfTopAppBar
 import li.gkd.app.ui.share.LocalMainViewModel
 import li.gkd.app.ui.style.EmptyHeight
 import li.gkd.app.ui.style.itemHorizontalPadding
+import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.ProtectedApps
 
 @Serializable
@@ -41,6 +42,7 @@ data object ProtectedAppsListRoute : NavKey
 fun ProtectedAppsListPage() {
     val mainVm = LocalMainViewModel.current
     val appInfoMap by AppInfoRepository.appInfoMapFlow.collectAsStateWithLifecycle()
+    val securityReviewEnabled = storeFlow.collectAsStateWithLifecycle().value.enableSecurityReview
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -110,7 +112,11 @@ fun ProtectedAppsListPage() {
                 }
             }
             Text(
-                text = "以上名单为引擎层强制保护：在这些应用内不会执行任何规则匹配与点击，不可通过设置关闭。",
+                text = if (securityReviewEnabled) {
+                    "安全审查已开启：在这些应用内不会执行任何规则匹配与点击。可在「设置 - 其他 - 安全审查」关闭。"
+                } else {
+                    "安全审查已关闭：这些应用内的规则可正常匹配与执行。可在「设置 - 其他 - 安全审查」重新开启。"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = itemHorizontalPadding, vertical = 12.dp),

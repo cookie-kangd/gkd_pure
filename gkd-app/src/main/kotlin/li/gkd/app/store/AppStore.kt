@@ -65,8 +65,8 @@ object AppStore {
         }
 
     fun checkAppBlockMatch(appId: String): Boolean {
-        // 受保护应用（支付宝/微信/银行类等资金交易应用）: 硬禁止, 与任何设置和规则来源无关
-        if (ProtectedApps.isProtected(appId)) {
+        // 安全审查开启时: 受保护应用（支付宝/微信/银行类等资金交易应用）一律硬禁止
+        if (ProtectedApps.shouldProtect(appId, storeFlow.value.enableSecurityReview)) {
             return true
         }
         if (blockMatchAppListFlow.value.contains(appId)) {

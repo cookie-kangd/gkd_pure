@@ -65,6 +65,10 @@ class SettingsVm : BaseViewModel() {
         AppStore.updateSettings { it.copy(enableDynamicColor = enabled) }
     }
 
+    fun setSecurityReviewEnabled(enabled: Boolean) {
+        AppStore.updateSettings { it.copy(enableSecurityReview = enabled) }
+    }
+
     suspend fun importBackup(uri: Uri) {
         toast("导入备份中...")
         val skipped = BackupManager.importData(uri)

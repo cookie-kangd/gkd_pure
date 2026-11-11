@@ -479,8 +479,8 @@ class A11yRuleEngine(private val service: A11yCommonImpl) {
                 }
             } ?: continue
             val rightAppId = nodeVal.packageName?.toString() ?: break
-            // 受保护应用硬禁止: 兜底校验当前窗口包名, 无论规则来源如何配置
-            if (ProtectedApps.isProtected(rightAppId)) return
+            // 安全审查开启时: 兜底校验当前窗口包名, 拦截受保护应用
+            if (ProtectedApps.shouldProtect(rightAppId)) return
             val matchApp = rule.matchActivity(rightAppId)
             if (currentTopActivity.appId != rightAppId || (!matchApp && rule is AppRule)) {
                 scope.launch(eventDispatcher) { fixAppId(rightAppId) }

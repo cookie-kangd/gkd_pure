@@ -39,6 +39,8 @@ import androidx.compose.ui.unit.dp
 import li.gkd.app.META
 import li.gkd.app.data.RawSubscription
 import li.gkd.db.SubsItem
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.formatTimeAgo
 import li.gkd.app.util.throttle
@@ -149,8 +151,13 @@ fun SubsItemCard(
                             LocalContentColor.current
                         }
                     )
-                    val protectedCount = remember(subscription) {
-                        ProtectedApps.filterProtected(subscription.apps.map { it.id }).size
+                    val securityReviewEnabled =
+                        storeFlow.collectAsStateWithLifecycle().value.enableSecurityReview
+                    val protectedCount = remember(subscription, securityReviewEnabled) {
+                        ProtectedApps.filterProtected(
+                            subscription.apps.map { it.id },
+                            securityReviewEnabled,
+                        ).size
                     }
                     if (protectedCount > 0) {
                         Text(

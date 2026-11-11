@@ -42,6 +42,7 @@ import li.gkd.app.domain.rule.RuleGroupPolicy
 import li.gkd.app.ui.icon.ResetSettings
 import li.gkd.app.ui.share.noRippleClickable
 import li.gkd.app.data.appinfo.AppInfoRepository
+import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.throttle
 import java.util.Objects
@@ -98,7 +99,8 @@ fun RuleGroupCard(
         ExcludeData.parse(subsConfig?.exclude)
     }
     val systemApps by AppInfoRepository.systemAppsFlow.collectAsStateWithLifecycle()
-    val protectedApp = appId != null && ProtectedApps.isProtected(appId)
+    val securityReviewEnabled = storeFlow.collectAsStateWithLifecycle().value.enableSecurityReview
+    val protectedApp = appId != null && ProtectedApps.shouldProtect(appId, securityReviewEnabled)
     val checked = if (inGlobalAppPage) {
         RuleGroupPolicy.getGlobalGroupChecked(
             subs,

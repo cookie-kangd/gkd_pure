@@ -35,6 +35,7 @@ import li.gkd.app.ui.share.LocalDarkTheme
 import li.gkd.app.ui.share.LocalMainViewModel
 import li.gkd.app.ui.style.JSON5_LARGE_TEXT_THRESHOLD
 import li.gkd.app.ui.style.getJson5AnnotatedString
+import li.gkd.app.store.AppStore.storeFlow
 import li.gkd.app.util.ProtectedApps
 import li.gkd.app.util.throttle
 
@@ -216,12 +217,13 @@ private fun ProtectedAppsSection(
     appId: String?,
 ) {
     val appInfoMap by AppInfoRepository.appInfoMapFlow.collectAsStateWithLifecycle()
-    val matchedAppIds = remember(subs.id, group.key, appId) {
+    val securityReviewEnabled = storeFlow.collectAsStateWithLifecycle().value.enableSecurityReview
+    val matchedAppIds = remember(subs.id, group.key, appId, securityReviewEnabled) {
         val ids: List<String> = when (group) {
             is RawSubscription.RawGlobalGroup -> group.appIdEnable.filterValues { it != false }.keys.toList()
             else -> listOfNotNull(appId)
         }
-        ProtectedApps.filterProtected(ids)
+        ProtectedApps.filterProtected(ids, securityReviewEnabled)
     }
     if (matchedAppIds.isEmpty()) return
     Column {

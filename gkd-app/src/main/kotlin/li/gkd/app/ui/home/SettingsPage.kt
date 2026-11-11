@@ -529,6 +529,16 @@ fun useSettingsPage(): ScaffoldExt {
                 color = MaterialTheme.colorScheme.primary,
             )
 
+            TextSwitch(
+                title = "安全审查",
+                subtitle = if (store.enableSecurityReview) {
+                    "拦截支付宝/微信/银行类应用内的规则匹配与点击"
+                } else {
+                    "已关闭: 银行/支付类应用内的规则将正常执行"
+                },
+                checked = store.enableSecurityReview,
+                onCheckedChange = vm::setSecurityReviewEnabled,
+            )
             SettingItem(title = "安全审查列表", subtitle = "内置资金交易类应用保护名单", onClick = {
                 mainVm.navigatePage(ProtectedAppsListRoute)
             })
